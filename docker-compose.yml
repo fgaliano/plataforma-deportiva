@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # El motor de nuestra Base de Datos
+  bbdd-plataforma:
+    image: postgres:15-alpine
+    container_name: postgres_deportivo
+    restart: always
+    environment:
+      POSTGRES_DB: bbdd-plataforma
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456789
+    ports:
+      - "5432:5432"
+    volumes:
+      - data-deportiva:/var/lib/postgresql/data
+    networks:
+      - red-deportiva
+
+# Volúmenes para que los datos no se borren al apagar el contenedor
+volumes:
+  data-deportiva:
+
+# Red interna para que los microservicios se hablen entre sí en el futuro
+networks:
+  red-deportiva:
+    driver: bridge
