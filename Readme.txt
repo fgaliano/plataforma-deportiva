@@ -1,10 +1,37 @@
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************
-																			INFORMACIÓN TIPOS DE APLICACIÓN
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************
+*******************************
+COMANDOS GIT
+*******************************
+
+Subirlo a tu GitHub de internet
+
+	1. Abre tu navegador de internet y entra en tu cuenta de GitHub.
+	2. Arriba a la derecha, haz clic en el botón + y selecciona New repository (Nuevo repositorio).
+	3. Dale el nombre oficial a tu proyecto: plataforma-deportiva.
+	4. Déjalo como Public o Private (lo que prefieras), pero MUY IMPORTANTE: no marques ninguna casilla de Add a README, Add .gitignore ni Choose a license (ya los tenemos creados en local y si los marcas dará conflicto).
+	5. Haz clic en el botón verde Create repository abajo del todo.
+
+Al crearlo, GitHub te mostrará una pantalla con unos comandos. Copia y ejecuta en tu terminal de VS Code las tres líneas finales 
+(las que sirven para emparejar tu PC con la web), que se verán exactamente así (cambiando tu nombre de usuario):
+
+	# 1. Renombrar la rama principal a 'main'
+	git branch -M main
+
+	# 2. Conectar tu Git local con el servidor de GitHub (Cambia 'tu-usuario' por el tuyo real)
+	git remote add origin https://github.com/tu-usuario/plataforma-deportiva.git
+
+	# 3. Subir el código por primera vez
+	git push -u origin main
+
+Comandos:
+	0. Primero, vamos a comprobar qué archivos va a guardar Git. Escribe: git status
+	1. Para decirle a Git que queremos guardar absolutamente todo lo nuevo, ejecuta: git add .
+	2. Ahora guardamos este estado en tu historial local con un mensaje descriptivo: 
+		git commit -m "Feat: Inicializacion del Monorepo, Docker Compose con Postgres y Entidad Usuario"
+
+
+*******************************
+INFORMACIÓN TIPOS DE APLICACIÓN
+*******************************
 
 Monorepo/Multirepo
 
@@ -55,13 +82,10 @@ Escalar aplicación
 	el balanceador las recibe y las va repartiendo como un crupier de cartas: la primera petición va al clon 1, la segunda al clon 2, la tercera al clon 3		
 	Ambos se pueden "instalar" (contenerizar) dentro de tu entorno de Docker tal y como hiciste con la base de datos PostgreSQL.	
 	
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************
-																			PASOS PARA CREAR EL PROYECTO
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************
-***************************************************************************************************************************************************************************************************************	
+
+*******************************
+PASOS PARA CREAR EL PROYECTO
+*******************************
 	
 Paso 1: Creación del proyecto:
 
@@ -213,5 +237,7 @@ Paso 3: Crear el archivo docker-compose.yml
 			- ports: - "5432:5432": El primer número es el puerto de tu ordenador real (Windows) y el segundo es el del contenedor de Docker. 
 									Al poner esto, permites que tu Spring Boot (que se ejecuta en tu local) pueda "entrar" al contenedor a través del puerto 5432.				
 			- volumes: Esto es vital. Si no pones un volumen, el día que apagues el ordenador o reinicies el contenedor, todos los usuarios registrados y los datos de las pruebas deportivas se borrarán para siempre. 
-					   El volumen crea un "túnel" que guarda los datos en tu disco duro real a salvo.								
+					   El volumen crea un "túnel" que guarda los datos en tu disco duro real a salvo.
+
+
 			
