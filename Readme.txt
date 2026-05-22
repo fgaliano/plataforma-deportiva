@@ -28,6 +28,14 @@ Comandos:
 	2. Ahora guardamos este estado en tu historial local con un mensaje descriptivo: 
 		git commit -m "Feat: Inicializacion del Monorepo, Docker Compose con Postgres y Entidad Usuario"
 
+Comandos crear rama, subir y volver a main sin merge:
+	0. git checkout -b rama_esqueleto_limpio
+	1. git add .
+	2. git commit -m "Feat: Estructura base del Monorepo y paquetes del microservicio de autenticacion"
+	3. git push -u origin rama_esqueleto_limpio
+	4. git checkout main
+
+
 
 *******************************
 INFORMACIÓN TIPOS DE APLICACIÓN
@@ -238,6 +246,114 @@ Paso 3: Crear el archivo docker-compose.yml
 									Al poner esto, permites que tu Spring Boot (que se ejecuta en tu local) pueda "entrar" al contenedor a través del puerto 5432.				
 			- volumes: Esto es vital. Si no pones un volumen, el día que apagues el ordenador o reinicies el contenedor, todos los usuarios registrados y los datos de las pruebas deportivas se borrarán para siempre. 
 					   El volumen crea un "túnel" que guarda los datos en tu disco duro real a salvo.
+
+	Paso 4.1 Levantar la base de datos
+		
+			- Abre la terminal integrada de VS Code (Terminal -> New Terminal). Asegúrate de que la ruta de la terminal sea la raíz (.../plataforma-deportiva).
+			- Ejecuta el comando mágico de Docker: 
+				docker compose up -d 
+				(El -d sirve para el "modo de detached", que hace que el contenedor se levante en segundo plano y te deje la terminal libre)
+			- Docker empezará a descargar la imagen de Postgres y en unos segundos verás un mensaje verde que dice Started.
+			- Si ahora entras en tu navegador a Portainer (http://localhost:9443), verás que ha aparecido de la nada un nuevo contenedor llamado postgres_deportivo funcionando impecable.
+
+
+Paso 5:
+	El objetivo de hoy es hacer que nuestro backend de autenticación funcione de verdad. Para ello, vamos a conectar las capas 
+	de Java de nuestro auth-service y a probar los flujos de Registro y Login directamente en la base de datos de Docker.
+
+	El objetivo de hoy es hacer que nuestro backend de autenticación funcione de verdad. Para ello, vamos a conectar las capas de Java de nuestro auth-service y 
+	a probar los flujos de Registro y Login directamente en la base de datos de Docker.	
+
+	Las 4 Capas del Microservicio:
+
+		1. models (Modelos / Entidades): 
+			Aquí se guardan los "planos" de tus datos. Son clases Java normales, pero decoradas con @Entity para decirle a Spring: "Oye, quiero que crees una tabla en PostgreSQL idéntica a esta clase"
+
+		2. repositories (Repositorios)
+			Es el "cable de datos" o el traductor. Aquí creamos interfaces que se conectan con Spring Data JPA. Gracias a esta capa, podremos hacer cosas como buscar un usuario en la base de datos con una sola línea de código, 
+			sin necesidad de escribir sentencias SQL a mano.
+
+		3. services (Servicios / Lógica de Negocio)
+			Es el "cerebro" de la aplicación. Aquí se programa la lógica inteligente y las reglas de tu plataforma. Por ejemplo: comprobar si el email que introduce un usuario ya está registrado, 
+			o pasar la contraseña por un algoritmo de encriptación para que nadie pueda verla en la base de datos si nos hackean.
+
+		4. controllers (Controladores)
+			Es la "puerta de entrada" desde el exterior (la API REST). Aquí definimos las URLs (endpoints) a las que llamaremos más tarde. 
+			Por ejemplo, cuando creemos el endpoint /auth/login, esta capa recibirá el usuario y contraseña que envíe el Frontend (o Postman), se los pasará al Service para que los verifique y devolverá una respuesta adecuada (como un "OK" o un "Error de contraseña").	
+
+		5. Estructura básica de carpetas
+			
+			plataforma-deportiva/
+			├── .gitignore
+			├── docker-compose.yml
+			├── backend-services/
+			│   └── auth-service/
+			│       ├── pom.xml
+			│       └── src/
+			│           └── main/
+			│               ├── java/
+			│               │   └── com/
+			│               │       └── plataformadeportiva/
+			│               │           └── authservice/
+			│               │               ├── AuthServiceApplication.java
+			│               │               ├── controllers/
+			│               │               ├── models/
+			│               │               │   └── Usuario.java
+			│               │               ├── repositories/
+			│               │               │   └── UsuarioRepository.java
+			│               │               └── services/
+			│               └── resources/
+			│                   └── application.properties
+			└── frontend-apps/		
+
+
+			======================================================================
+			FLUJO DE DATOS Y ARQUITECTURA EN CAPAS (API REST)
+			======================================================================
+
+			Cuando un cliente (Postman / Frontend React) realiza una petición al microservicio, 
+			la información viaja de forma unidireccional a través de las siguientes capas:
+
+			[ CLIENTE ] -- (Envía JSON: username/password) --> [ CONTROLLERS ]
+																	│
+															(Valida HTTP y mapea)
+																	▼
+																[ SERVICES ]
+																	│
+															(Aplica Lógica de Negocio)
+															(Cifra claves / Verifica)
+																	▼
+															[ REPOSITORIES ]
+																	│
+															(Traducción a SQL)
+																	▼
+															[ POSTGRESQL (Docker) ]
+
+			----------------------------------------------------------------------
+			RESPONSABILIDAD DE CADA CAPA:
+			----------------------------------------------------------------------
+
+			1. CLIENTE (Postman / Frontend):
+			- Envía peticiones HTTP (POST, GET, etc.) portando datos en formato JSON.
+			- Recibe la respuesta (JSON + Código de estado HTTP como 200 OK o 400 Bad Request).
+
+			2. CONTROLADOR (Capas 'controllers'):
+			- Es la puerta de entrada de la API. Expone los endpoints (URLs como /auth/login).
+			- Recibe el JSON y lo transforma automáticamente en un objeto Java (DTO / Modelo).
+			- Delega el trabajo pesado al Service y devuelve la respuesta HTTP al cliente.
+
+			3. SERVICIO (Capa 'services'):
+			- Contiene el "cerebro" y las reglas de negocio del sistema.
+			- Aquí se valida si un usuario ya existe, si las contraseñas coinciden y se 
+				aplica la encriptación de seguridad.
+
+			4. REPOSITORIO (Capa 'repositories'):
+			- Actúa como puente intermedio (ORM) mediante Spring Data JPA.
+			- Traduce los objetos Java a consultas SQL automáticas sin necesidad de picar 
+				código de base de datos a mano.
+
+			5. BASE DE DATOS (PostgreSQL en Docker):
+			- Almacena de forma permanente y segura las tablas y registros del sistema.					   
 
 
 			
