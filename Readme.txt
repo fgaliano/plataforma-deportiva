@@ -35,7 +35,20 @@ Comandos crear rama, subir y volver a main sin merge:
 	3. git push -u origin rama_esqueleto_limpio
 	4. git checkout main
 
+Comandos para guardar cambios:
+	0. git status (se ven los cambios en rojo)
+	1. git add . ((Ese punto . significa "añade absolutamente todo lo que haya cambiado o sea nuevo"). Si vuelves a hacer git status, verás que todo se habrá puesto en verde.)
 
+
+
+*******************************
+GENERAR JAVADOC
+*******************************
+
+	1. mvn clean javadoc:javadoc -Dadditionalparam="-Xdoclint:none" -DfailOnError=false
+
+	Primero: "Genérame los archivos HTML estrictos de mi código Java (los apidocs)".
+	Segundo: "Monta la web del sitio e integra los apidocs dentro".
 
 *******************************
 INFORMACIÓN TIPOS DE APLICACIÓN
@@ -356,4 +369,209 @@ Paso 5:
 			- Almacena de forma permanente y segura las tablas y registros del sistema.					   
 
 
+Paso 6: Nomenclatura de tablas.
+
+	gpdd_: Tablas maestras o de datos normales (ej. gpdd_usuarios).
+	gpdp_: Tablas paramétricas (diccionarios, tipos de deporte, roles).
+	gpdr_: Tablas relacionales (tablas intermedias de muchos a muchos, ej: inscripciones).
+
+Paso 7: Crear la Entidad de Usuario y perfiles
+
+	Paso 7.1 Abre tu VS Code.
+	Paso 7.2 Ve a la carpeta models (dentro de backend-services/auth-service/src/main/java/com/plataformadeportiva/authservice/models).
+	Paso 7.3 Crea un archivo llamado Usuario.java.
+	Paso 7.4 Crea un archivo llamado PerfilUsuario.java.
+	Paso 7.5 Se relacionan ambas de este modo:
+	
+			// Aquí ocurre la magia de la relación relacional
+			@ManyToOne(fetch = FetchType.EAGER)
+			@JoinColumn(name = "perfil_id", nullable = false)
+			private PerfilUsuario perfil;
+
+	Esto crea un nuevo campo en Usuario.java llamado perfil_id que almacenará el id del perfil de cada usuario, esto lo hace automaticamente
+	ya que busca en el modelo PerfilUsuario el campo con la notacion @id y lo relaciona. Los metodos get y set no hace escribirlos porque
+	se ha incluido la notacion import lombok.Data; La respuesta a este misterio está en una pequeña palabra que has puesto justo encima de la definición de tus clases: @Data.
+
+	Esa anotación @Data pertenece a una librería de Java utilísima llamada Lombok.
+	En el Java tradicional de hace unos años, los programadores odiábamos tener que escribir (o generar con el IDE) cientos de líneas de código repetitivo solo para los getters, setters, el método toString(), el equals() y el hashCode(). El archivo se volvía gigante y aburrido.
+	Al poner @Data, le estás diciendo a Spring Boot:
+	"Oye, cuando compiles este proyecto para ejecutarlo, genera tú solo en memoria todos los métodos get y set de cada una de las variables que he escrito, sin que yo tenga que verlos aquí en sucio".		 
+
+	NOTA: Para que tu VS Code no se vuelva loco pintándote líneas rojas de error cuando empecemos a escribir usuario.getNombre() en las otras capas hay
+	que instslar la extension Lombok.
+
+Paso 8 Crear los Repositorios (repositories)
+
+	Paso 8.1 Es el "cable de datos" o el traductor. Aquí creamos interfaces que se conectan con Spring Data JPA.
+			 Gracias a esta capa, podremos hacer cosas como buscar un usuario en la base de datos con una sola línea de código, 
+			 sin necesidad de escribir sentencias SQL a mano.
+
+	Paso 8.2 Crea un archivo llamado PerfilUsuarioRepository.java y UsuarioRepository
+
+Paso 9 Crear el Servicio (services)
+
+	Paso 9.1 Ahora que tenemos los cables de la base de datos, creamos el "cerebro" que gestionará las reglas de negocio 
+			(que no se repitan correos ni usuarios y que se asigne bien el perfil).
+
+	Paso 9.2 Crea el archivo UsuarioService.java
+
+Paso 10 Crear el Controlador (controllers)	
+	Por último, creamos la puerta de entrada de la API. Este archivo escuchará las peticiones HTTP que vengan desde Postman o desde tu Frontend.
+
+		Paso 10.1 Ve a la carpeta controllers.
+		Paso 10.2 Crea un archivo llamado UsuarioController.java
+
+Paso 11: Arquitectura y flujo de datos
+
+		=======================================================================
+		FLUJO DE ARQUITECTURA - MICROSERVICIO: auth_service
+		=======================================================================
+
+			[ Cliente / Postman ]  (POST: /auth/register)
+						│
+						▼
+		1. CAPA CONTROLADOR (UsuarioController.java)
+			- Recibe la petición HTTP y los datos (JSON).
+			- Captura errores y devuelve las respuestas (200 OK / 400 Bad Request).
+						│
+						▼
+		2. CAPA SERVICIO (UsuarioService.java)  <-- [El Cerebro]
+			- Aplica la lógica de negocio.
+			- Valida que no se repitan usuarios o emails.
+			- Enlaza el perfil correspondiente al usuario.
+						│
+						├───► ¿Falta el Perfil? ──► Consulta la tabla paramétrica
+						│                                    │
+						▼                                    ▼
+		3. CAPA REPOSITORIOS (JPA Data)                    │
+			├─ UsuarioRepository.java                       │
+			└─ PerfilUsuarioRepository.java ◄───────────────┘
+						│
+						▼
+		4. BASE DE DATOS (PostgreSQL)
+			├─ gpdd_usuarios          (Tabla Maestra)
+			└─ gpdp_perfiles_usuarios (Tabla Paramétrica)
+
+		=======================================================================
+
+
+		=======================================================================
+		FLUJO DE ARQUITECTURA - MICROSERVICIO: auth_service
+		=======================================================================
+
+			[ Cliente / Postman ]  (POST: /auth/register)
+						│
+						▼
+		1. CAPA CONTROLADOR (UsuarioController.java)
+			- Recibe la petición HTTP y los datos (JSON).
+			- Captura errores y devuelve las respuestas (200 OK / 400 Bad Request).
+						│
+						▼
+		2. CAPA SERVICIO (UsuarioService.java)  <-- [El Cerebro]
+			- Aplica la lógica de negocio.
+			- Valida que no se repitan usuarios o emails.
+			- Enlaza el perfil correspondiente al usuario.
+						│
+						├───► ¿Falta el Perfil? ──► Consulta la tabla paramétrica
+						│                                    │
+						▼                                    ▼
+		3. CAPA REPOSITORIOS (JPA Data)                      │
+			├─ UsuarioRepository.java                        │
+			└─ PerfilUsuarioRepository.java ◄────────────────┘
+						│
+						▼
+		4. BASE DE DATOS (PostgreSQL)
+			├─ gpdd_usuarios          (Tabla Maestra)
+			└─ gpdp_perfiles_usuarios (Tabla Paramétrica)
+
+		=======================================================================
+
+		=======================================================================
+			ESTRUCTURA DE CARPETAS Y ROLES (Microservicio: auth_service)
+		=======================================================================
+
+		📂 auth_service
+		│
+		├── 📂 controllers
+		│    └── 📄 UsuarioController.java    ◄── [EL PUNTO DE ENTRADA]
+		│                                         Recibe el JSON desde fuera (Postman)
+		│
+		├── 📂 services
+		│    └── 📄 UsuarioService.java       ◄── [EL CEREBRO / LA LÓGICA]
+		│                                         Aplica las reglas (comprueba duplicados)
+		│
+		├── 📂 repositories
+		│    ├─ 📄 UsuarioRepository.java     ◄── [EL TRADUCTOR SQL]
+		│    └─ 📄 PerfilUsuarioRepository.java   Busca y guarda datos de forma automática
+		│
+		└── 📂 models
+			├─ 📄 Usuario.java               ◄── [EL REFLEJO DE LA TABLA]
+			└─ 📄 PerfilUsuario.java             Representa las tablas de PostgreSQL en Java
+
+		=======================================================================
+
+		NOTA:
+		Como bien has intuido, este grupo de 4 piezas se repite para cada entidad principal de tu base de datos:
+			Si mañana creas la gestión de "Equipos", tendrás: 
+				
+				Equipo.java (Modelo)
+				EquipoRepository.java
+				EquipoService.java
+				EquipoController.java.
+
+	Paso 12: Configurar la conexión en Java con la bbdd (application.properties)
+
+	Paso 13: Cargar tabla parametrica.
+		Como la tabla gpdp_perfiles_usuarios es paramétrica, no puede estar vacía. Si intentas registrar un usuario con el perfil DEPORTISTA y la tabla de perfiles está vacía, el servicio te lanzará el error de "El perfil no existe".
+		Spring Boot tiene un truco genial: si creas un archivo llamado import.sql en la carpeta de recursos, ejecutará esas sentencias automáticamente justo después de crear las tablas.
+
+			Paso 13.1 En esa misma carpeta resources (al lado del application.properties)
+			Paso 13.2 Crea un archivo nuevo llamado exactamente import.sql.
+			Psso 13.3 Pega estas líneas de inserción
 			
+			-- Insertar los perfiles por defecto en la tabla paramétrica
+			INSERT INTO gpdp_perfiles_usuarios (perfil, descripcion) VALUES ('ADMIN', 'Administrador total de la plataforma deportiva');
+			INSERT INTO gpdp_perfiles_usuarios (perfil, descripcion) VALUES ('DEPORTISTA', 'Usuario estándar que realiza actividades y reservas');
+			INSERT INTO gpdp_perfiles_usuarios (perfil, descripcion) VALUES ('ENTRENADOR', 'Perfil para gestionar entrenamientos y alumnos');
+
+	Paso 14: Cómo arrancar el microservicio
+		Paso 14.1 Entra en la ruta donde está el proyecto de autenticación
+			cd backend-services/auth-service
+
+		Paso 14.2 Ahora sí, lanza el arranque de Spring Boot
+			mvn spring-boot:run
+			mvn spring-boot:run -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+
+	Paso 15: Falla pq hay que crear la clase SecurityConfig		
+
+		package com.plataformadeportiva.auth_service.config;
+
+		import org.springframework.context.annotation.Bean;
+		import org.springframework.context.annotation.Configuration;
+		import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+		import org.springframework.security.web.SecurityFilterChain;
+
+		@Configuration
+		public class SecurityConfig {
+
+			@Bean
+			public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+				http
+					.csrf(csrf -> csrf.disable()) // Desactiva CSRF para que Postman pueda hacer POST sin problemas
+					.authorizeHttpRequests(auth -> auth
+						.anyRequest().permitAll() // Abre todas las URLs al público (¡adiós al 401!)
+					);
+				return http.build();
+			}
+		}
+
+	Paso 16:
+		Encriptar contraseña
+		Necesitamos decirle a Spring que use BCryptPasswordEncoder como su herramienta oficial para empaquetar contraseñas.
+
+			16.1 Abre tu archivo SecurityConfig.java
+			16.2 Inyectar y usar el encriptador en UsuarioService.java
+			16.3 Ahora que Spring ya sabe qué es el passwordEncoder, vamos a usarlo en tu UsuarioService.java para codificar la contraseña justo antes de hacer el .save().
+				 @Autowired
+				 private PasswordEncoder passwordEncoder; // <-- Inyectamos el encriptador que creamos en SecurityConfig
+				 (fuera de la declaracion de la clase)

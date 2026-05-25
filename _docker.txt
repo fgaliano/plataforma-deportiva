@@ -1,0 +1,282 @@
+DOCKER
+--------
+
+1. ¿Qué es Docker y qué ventajas tiene?
+	Para entenderlo rápido con mentalidad Java: imagina que un contenedor de Docker es como un archivo .jar pero con esteroides. 
+	No solo lleva tu código compilado, sino que lleva dentro su propio sistema operativo en miniatura (Linux), 
+	su propia máquina virtual de Java (JVM) instalada, sus variables de entorno y sus dependencias.
+	
+2. Ventajas:
+	2.1 "En mi máquina funciona": Se acabó ese problema. Si el contenedor funciona en tu ordenador, funcionará exactamente igual en el servidor de producción de tu empresa, porque lleva todo su "entorno" empaquetado dentro.	
+	2.2  Aislamiento absoluto: Cada microservicio vive en su propia "caja" aislada. Si el microservicio de usuarios se cae o tiene una fuga de memoria, no tumba al resto de la aplicación ni a la base de datos.
+	2.3  Escalabilidad: En producción, si el listado de usuarios recibe millones de visitas, con un solo comando puedes levantar 3 contenedores idénticos de ese microservicio para repartir la carga.
+	
+Docker Desktop por debajo ya se encarga de comunicarse con el núcleo de tu sistema operativo 
+(usando WSL2 si estás en Windows o el hipervisor nativo en Mac) para levantar los contenedores de forma súper eficiente. 
+ Consume muchísimos menos recursos (RAM y CPU) que una máquina virtual tradicional.	
+ 
+3. Interfaz
+	3.1 Portainer: una interfaz web muy popular para gestionar Docker visualmente
+	3.2 Docker Desktop: Panel de control en desarrollo.
+	3.3 En producción todo se maneja por línea de comandos (Terminal) o mediante herramientas de orquestación como Kubernetes.
+	
+4. Portainer	
+   Para usar Portainer en tu máquina con Docker Desktop, no necesitas instalar ningún programa extra. 
+   Portainer, de forma muy inteligente, se distribuye como un contenedor más de Docker. Es decir, vamos a levantar Portainer usando el propio Docker.	
+  
+	Paso 4.1: Crear el contenedor de Portainer desde la Terminal
+		Abre la terminal de tu sistema (PowerShell o CMD si estás en Windows, o la terminal de VS Code) y ejecuta este comando único.
+			
+			docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:latest
+			
+		¿Qué le acabamos de ordenar a Docker?
+			* docker run -d: Le dice a Docker: "Crea un contenedor y ejecútalo en segundo plano (detached)" para que no te bloquee la terminal.
+			* -p 9443:9443: Mapea el puerto 9443 de tu ordenador con el 9443 del contenedor. Portainer utiliza este puerto seguro (HTTPS) para mostrar su web.
+			* --name portainer: Le pone el nombre "portainer" al contenedor para tenerlo identificado en tu panel.
+			* -v /var/run/docker.sock:/var/run/docker.sock: Este es el gran secreto. Le estás dando permiso a Portainer para "mirar" dentro del motor de tu Docker Desktop. Así es como la web puede controlar tus otros contenedores.
+			* portainer/portainer-ce:latest: Es la imagen oficial y gratuita (Community Edition) que va a descargar del repositorio de Docker.
+			
+	Paso 4.2: Entrar a la interfaz web		
+		Una vez que termine de descargar y poner success, abre tu navegador favorito (Chrome, Edge, etc.) y navega a la siguiente dirección de seguridad:
+			https://localhost:9443
+			
+	Paso 4.3: Configuración inicial	
+		* Lo primero que te pedirá la web es establecer una contraseña para el usuario admin. Pon una que recuerdes (mínimo 12 caracteres) y dale a Create user.
+		* Conectar el entorno: En la siguiente pantalla, te preguntará qué quieres monitorizar. Elige la opción "Get Started" (el botón grande que dice Proceed using the local environment).
+		
+	Paso 4.4: ¿Cómo moverte por Portainer para tus microservicios?	
+		Una vez dentro, haz clic en tu entorno llamado "local" y verás tu panel de control principal. Aquí tienes las 4 pestañas que más vas a usar en tu día a día:
+		
+			1. Containers (Contenedores)
+				Aquí verás tu base de datos actual, tu backend y tu frontend cuando los metamos. Tienes botones rápidos arriba (Start, Stop, Restart) para apagarlos o encenderlos con un solo clic. 
+			   
+			2. El icono del documento (Logs)
+				Al lado de cada contenedor verás un icono con unas líneas de texto. Si haces clic ahí, verás la consola del microservicio en vivo. 
+				Verás arrancar tu Spring Boot o las queries de Hibernate exactamente igual que en el IDE, ideal para debugar fallos de producción.  
+			
+			3. El icono de la consola (>_)
+				Te permite "entrar" dentro del contenedor. Si le das a conectar, se abrirá una terminal Linux dentro de la caja de tu microservicio, por si necesitas comprobar archivos o rutas internas.			
+				
+			4. Volumes (Volúmenes)	
+				Aquí es donde vive el "disco duro" de tu base de datos de Docker. Gracias a esto, aunque borres el contenedor, los datos de tus usuarios no se pierden.
+				
+			5. Stack (Pilas de servicios)	
+			    Qué es: En el mundo profesional, un "Stack" es un conjunto de contenedores que trabajan juntos para formar una aplicación completa 
+				(por ejemplo: tu Base de Datos + tu Backend en Spring Boot + tu Frontend en React).
+			
+			6. Images (Imágenes)	
+				Son los moldes o "paquetes congelados" que contienen todo lo necesario para que un contenedor pueda nacer (el sistema operativo Linux minificado,
+				las variables, el ejecutable, etc.). Las imágenes se descargan de un servidor en la nube llamado Docker Hub.
+			
+			7. Volumes (Volúmenes)		
+				Qué es: Es el disco duro persistente de Docker. Por defecto, los contenedores son "efímeros"; si apagas o borras el contenedor de una base de datos, todos los usuarios y tablas que hayas creado desaparecerían para siempre.
+				Para qué sirve: Un volumen es una carpeta real de tu ordenador que se "inyecta" dentro del contenedor. Así, cuando MySQL o PostgreSQL escriben datos, lo hacen directamente en el volumen. Aunque borres el contenedor, los datos se quedan a salvo en tu disco.
+				
+			8. Networks (Redes)
+				Son los cables virtuales que conectan tus contenedores entre sí.
+				Por defecto, Docker aísla los contenedores por seguridad. Si quieres que tu backend de Spring Boot pueda hablar con la base de datos, 
+				tienen que estar conectados a la misma "Network". Docker crea algunas por defecto, pero nosotros crearemos una personalizada para que tus microservicios se comuniquen de forma segura sin interferencias.
+				
+	
+	Paso 5: Ordenacion contenedores
+		Los microservicios se organizan principalmente utilizando tres niveles de ordenación.	
+		
+			5.1 Las Etiquetas (Labels) y Filtros: El "Etiquetado" de ropa
+				En Portainer y en Docker, la forma más básica de separar el Front del Back es usando Labels (Etiquetas metadata). 
+				Al crear el contenedor, le añades etiquetas invisibles como tipo=backend o proyecto=modulo-compras.
+				Luego, en la pantalla de Portainer, arriba de la lista de contenedores tienes un buscador y unos botones de filtrado rápido. 
+				Si pulsas en el filtro y seleccionas tipo=backend, la lista de 40 contenedores se reduce al instante a los 20 de Java, ocultando todo el ruido del frontend.
+			
+			5.2 Los Stacks (Docker Compose): La separación por "Módulos de Negocio"	
+				Esta es la regla de oro número uno: los microservicios nunca se organizan por "tecnología" (Front/Back), sino por "funcionalidad de negocio".
+				Si tienes una aplicación gigante, no metes los 20 frontends en un saco y los 20 backends en otro. Los agrupas por su dominio. Por ejemplo:
+				
+					* Stack Facturación: Tendrá el contenedor de su BD, su microservicio de Back de facturas y su mini-front exclusivo para gestionar facturas.
+					* Stack Usuarios: Tendrá tu base de datos de usuarios, tu backend en Spring Boot y tu frontend en React.
+				
+				En tu pantalla de Portainer, si pinchas en la pestaña Stacks, verías una lista limpia con 5 o 6 "proyectos" o "módulos". 
+				Al pinchar dentro del Stack "Usuarios", se abre una subpantalla que solo te muestra los 3 o 4 contenedores que pertenecen a ese flujo, ignorando por completo los otros 36 contenedores de la empresa.			
+
+			5.3 Kubernetes (K8s) y los Namespaces: El estándar para producción		
+				Cuando la cosa se va de las manos y pasas de 40 contenedores a 200 o 300, Docker Desktop y Portainer básico se quedan cortos. Ahí es donde entra el rey del mercado actual: Kubernetes.
+				Kubernetes introduce el concepto de Namespaces (Espacios de Nombres). Imagínalo como crear "carpetas virtuales" o "provincias" totalmente estancas dentro del servidor. Podrías tener:
+
+					* Un Namespace llamado desarrollo-usuarios
+					* Un Namespace llamado produccion-facturacion
+				
+				Cuando tú entras a trabajar, le dices a tu herramienta de control: "Conéctame al Namespace de usuarios". A partir de ese momento, 
+				para tus ojos el resto de los microservicios de la empresa dejan de existir. Solo ves, debugas y monitorizas los tuyos.	
+				
+	El Mapa de tu Arquitectura (Con Stacks independientes)				
+
+		Stack 1: modulo-autenticacion (El que tenemos ahora)
+			Este es el "portero" del sistema. Los demás módulos dependerán de él para saber quién tiene permiso de acceso.
+				
+				Contenedor 1: Base de datos de usuarios (la que ya tienes en Docker).
+				Contenedor 2: Backend Spring Boot (auth-service).
+				Contenedor 3: Frontend React (auth-frontend con tu Login y tu Tabla).
+				
+		Stack 2: modulo-senderismo (Tu primer añadido)		
+			Este servicio no sabe nada de contraseñas; solo sabe de montañas, rutas, mapas y fotos.
+			
+				Contenedor 1: Su propia Base de Datos independiente para las rutas (las bases de datos nunca se comparten entre microservicios reales por acoplamiento).
+				Contenedor 2: Backend Spring Boot (senderismo-service).
+				Contenedor 3: Su frontend o sección específica.
+				
+		Stack 3: modulo-deportes (Pruebas deportivas)
+			Este gestiona inscripciones, dorsales y clasificaciones de carreras.
+			
+				Contenedor 1: Su base de datos de eventos.
+				Contenedor 2: Backend Spring Boot (deportes-service).
+				Contenedor 3: Frontend React (deportes-frontend o la sección de la app que pinta los dorsales y clasificaciones).
+				
+	
+	Paso 6: El gran juego: ¿Cómo se comunican y cómo escalamos?	
+		Al tenerlo organizado de esta manera, tu Portainer se va a convertir en un laboratorio de pruebas de nivel sénior donde haremos experimentos brutales:
+		
+			* Simular alta demanda (Escalar un microservicio): Imagina que se abre el plazo de inscripción para una carrera popular de montaña y el microservicio de deportes-service se satura por las peticiones. 
+			  Desde Portainer (o con un comando rápido en la terminal), le diremos a Docker: "De este contenedor en concreto, levántame 3 copias idénticas en paralelo". Así aprenderás cómo se monta un balanceador de carga para repartir el tráfico. Mientras tanto, el módulo de usuarios o el de rutas seguirán con un solo contenedor quietecitos porque consumen menos.
+			  
+			* Comunicación interna (Redes Docker): Cuando el microservicio de senderismo necesite saber qué usuario ha subido la foto de una ruta, el senderismo-service le enviará una petición HTTP interna 
+			  "por debajo de la mesa" al auth-service para verificar el token JWT. Aprenderemos a crear una Red Docker común para que hablen entre ellos usando simplemente sus nombres de contenedor como si fueran dominios de internet (http://auth-service:8081/validar).  
+			  
+	
+    Paso 7: Empecemos por Git y el Dockerfile	
+		Para poder llegar a ese escenario, tenemos que aprender a empaquetar el primer ladrillo: tu backend actual de gestión de usuarios.
+		En el mercado real, antes de tocar Docker, el código tiene que estar guardado de forma segura en un repositorio de Git, controlando 
+		los cambios mediante ramas (haremos una rama para meter Docker sin romper lo que ya te funciona).
+		
+		En el mundo profesional, cuando vas a meter una tecnología nueva o un cambio grande (como empaquetar con Docker),
+		nunca se hace directamente sobre la rama principal (main o master). Lo que hace un desarrollador sénior es abrir una rama secundaria (una rama de características o feature branch), 
+		trabaja ahí y, cuando todo funciona en Docker, se une mediante un Pull Request o un Merge a la rama principal.
+		
+		Paso 7.1: Crear una rama en Git para Docker
+			Si usas la terminal de VS Code: Ejecuta este comando para crear y saltar a una rama llamada feature/dockerizar-backend
+				git checkout -b feature/dockerizar-backend
+				
+		Paso 7.2: Crear el archivo Dockerfile		
+			Abre tu editor de código (VS Code o el que uses para Java) y abre la carpeta del proyecto D:\repos_GIT\curso-java-microservicios\auth-service
+				
+				En la raíz del proyecto (al mismo nivel donde ves la carpeta src y el archivo pom.xml), crea un archivo nuevo.
+				Nómbralo exactamente Dockerfile (con la "D" mayúscula y sin ninguna extensión como .txt).
+				Pega dentro este contenido estructurado para Spring Boot:
+				
+					# Etapa 1: Compilación (Cambiamos a JDK 21)
+					FROM eclipse-temurin:21-jdk-alpine AS build
+					WORKDIR /app
+
+					# Copiamos archivos de configuración de Maven
+					COPY pom.xml .
+					COPY .mvn .mvn
+					COPY mvnw .
+
+					# Copiamos el código fuente
+					COPY src src
+
+					# Compilamos el proyecto generando el .jar (saltando los tests para ir rápido)
+					RUN ./mvnw clean package -DskipTests
+
+					# Etapa 2: Imagen de ejecución ligera (Cambiamos a JRE 21)
+					FROM eclipse-temurin:21-jre-alpine
+					WORKDIR /app
+
+					# Copiamos el .jar generado en la etapa anterior
+					COPY --from=build /app/target/*.jar app.jar
+
+					# Exponemos el puerto de tu backend (el 8081)
+					EXPOSE 8081
+
+					# Comando para arrancar el microservicio
+					ENTRYPOINT ["java", "-jar", "app.jar"]
+					
+		Paso 7.3: Construir (buildeas) la imagen en Docker			
+			Una vez guardado el archivo, vuelve a esa misma ventana de PowerShell que tienes abierta (que ya está posicionada en la ruta correcta) y ejecuta este comando para compilar tu contenedor:
+			
+				docker build -t auth-service:1.0 .
+				
+		Paso 7.4: La confirmación en Portainer		
+			Abre tu pestaña de Portainer en el navegador y ve al menú de la izquierda, a la sección Images.
+		
+		Paso 7.5: Guardar el hito en Git	
+			
+			Como estás trabajando en la rama secundaria, vamos a dejarlo todo recogido para cuando retomemos el curso. Abre tu TortoiseGit o la sección de Git en VS Code:
+			
+				* Haz un Commit de los cambios del Dockerfile (el que modificamos a la versión 21). Puedes poner un mensaje como "Feature: Dockerfile de backend configurado con Java 21 y compilado con éxito".
+				* Si quieres subir la rama a tu GitHub para tener copia de seguridad en la nube, dale a Push (Impulsar). TortoiseGit te avisará de que esa rama no existe en el servidor web y la creará allí automáticamente
+				
+				
+	Paso 8: Frontend
+	
+		8.1 Abre tu proyecto frontend-react en tu editor de código o consola
+		8.2 Crea la rama feature/dockerizar-frontend con TortoiseGit o tu terminal (para trabajar sobre seguro).
+			git checkout -b feature/dockerizar-frontend
+		8.3 Crea el archivo Dockerfile en la raíz (al lado de package.json). Asegúrate de que no lleve .txt al final.	
+			# Etapa 1: Compilación del código de React
+			FROM node:20-alpine AS build
+			WORKDIR /app
+
+			COPY package*.json ./
+			RUN npm install
+
+			COPY . .
+			RUN npm run build
+
+			# Etapa 2: Servidor web de producción ultra ligero
+			FROM nginx:alpine
+			COPY --from=build /app/dist /usr/share/nginx/html
+
+			EXPOSE 80
+			CMD ["nginx", "-g", "daemon off;"]
+			
+		8.4 Lanzando el Build del Front	
+		   cd D:\repos_GIT\frontend-react
+		   docker build -t auth-frontend:1.0 .
+		   
+	Paso 9: Conectar el backend con bbdd de docker
+
+		9.1 Copiar el contenido del docker-compose.yml	(se copia en portainer)
+		
+			version: '3.8'
+
+			services:
+			  # ☕ MICROSERVICIO BACKEND (SPRING BOOT)
+			  auth-service:
+				image: auth-service:1.0
+				container_name: auth-service-container
+				ports:
+				  - "8081:8081"
+				environment:
+				  - SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/bbdd-microservicios
+				  - SPRING_DATASOURCE_USERNAME=admin  # El usuario de tu Postgres local
+				  - SPRING_DATASOURCE_PASSWORD=password123 # La contraseña de tu Postgres local
+				restart: always
+
+			  # ⚛️ MICROSERVICIO FRONTEND (REACT + NGINX)
+			  auth-frontend:
+				image: auth-frontend:1.0
+				container_name: auth-frontend-container
+				ports:
+				  - "80:80" # Tu web estará accesible en http://localhost
+				restart: always   
+			
+		9.2 Desplegarlo en Portainer		
+			
+			1. Ve a tu navegador y abre Portainer.
+			2. En el menú de la izquierda, haz clic en Stacks.
+			3. Arriba a la derecha, dale al botón azul + Add stack.
+			4. En el campo Name, escribe: modulo-autenticacion.
+			5. En el recuadro grande de abajo (el editor de texto), pega el código YAML que acabas de copiar.
+			6. Baja del todo y haz clic en el botón verde grande: Deploy the stack.
+			7. Para subir cambios, se hace esto:
+				
+				compilar:
+				- mvn clean package -DskipTests
+				
+				Construir la imagen saltándonos la caché de Docker:
+				docker build --no-cache -t auth-service:1.2 .
+				
+				Actualizar el Stack en Portainer a la 1.2
+				auth-service:
+					image: auth-service:1.2
+					
+				Haz clic en Update the stack.	
