@@ -176,6 +176,18 @@ Vamos a estructurarlo en dos partes: cómo organizar las ramas en Git para produ
 			</plugin>	
 
 *******************************
+PASO A PRODUCCION DOCKER
+*******************************
+0. git status (se ven los cambios en rojo)
+1. git add .
+2. git commit -m "Feat: Estructura base del Monorepo y paquetes del microservicio de autenticacion"
+3. git push -u origin nombre_rama
+4. git checkout main
+5. git merge nombre_rama
+6. docker compose down
+7. docker compose up --force-recreate --build -d
+
+*******************************
 GENERAR JAVADOC
 *******************************
 
