@@ -39,7 +39,31 @@ Comandos para guardar cambios:
 	0. git status (se ven los cambios en rojo)
 	1. git add . ((Ese punto . significa "añade absolutamente todo lo que haya cambiado o sea nuevo"). Si vuelves a hacer git status, verás que todo se habrá puesto en verde.)
 
+*******************************
+ENTREGAS A PRODUCCION DOCKER
+*******************************
 
+Trabajar con monorrepositorios y muchos microservicios tiene su truco, pero una vez que organizas la estructura mental y el flujo de Git, 
+es una delicia porque lo tienes todo bajo el mismo techo.
+
+Vamos a estructurarlo en dos partes: cómo organizar las ramas en Git para producción y cómo mapearlo en tu Docker Compose (tu stack).
+
+1. Organización de Ramas en un Monorepo
+	En un monorepo, la regla de oro es que las ramas son globales, afectan a todo el repositorio, pero tus commits especifican qué servicio cambia. 
+	Para simular una entrega a producción de forma profesional, lo estándar es usar el flujo Git Flow simplificado:
+
+		1.1 main (o master): Es tu línea sagrada. Lo que está aquí es lo que está corriendo en producción (estable y sin fallos).
+		1.2 develop (donde estás ahora): Es tu línea de batalla. Aquí vas metiendo las funciones del día a día, el registro, el login, etc.
+		1.3 Vamos a congelar lo que tenemos ahora, asegurar que está en develop y crear la rama main para hacer el despliegue.
+		1.4 Asegura tus cambios actuales en develop.
+			cd d:\repos_GIT\plataforma-deportiva
+			git checkout -b develop --> crea la rama develop y se mueve a ella
+			git add . --> añade todos los cambios.
+			git commit -m "Build: Preparando release para producción" --> se hace commit.
+			git push origin develop --> y se guardan en la rama develop.
+			
+		1.5 Crea la rama de producción (main) a partir de tus cambios:
+			git checkout -b main --> crea la rama main a partir de estos ultimos cambios y se posiciona en ella.
 
 *******************************
 GENERAR JAVADOC
@@ -575,3 +599,5 @@ Paso 11: Arquitectura y flujo de datos
 				 @Autowired
 				 private PasswordEncoder passwordEncoder; // <-- Inyectamos el encriptador que creamos en SecurityConfig
 				 (fuera de la declaracion de la clase)
+
+
