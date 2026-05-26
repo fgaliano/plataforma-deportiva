@@ -1,4 +1,13 @@
 *******************************
+PASAR UN TXT a HTML
+*******************************
+
+	1. Abre tu terminal e instala la librería con este comando:
+		pip install markdown
+
+	2. 	
+
+*******************************
 COMANDOS GIT
 *******************************
 
@@ -38,6 +47,17 @@ Comandos crear rama, subir y volver a main sin merge:
 Comandos para guardar cambios:
 	0. git status (se ven los cambios en rojo)
 	1. git add . ((Ese punto . significa "añade absolutamente todo lo que haya cambiado o sea nuevo"). Si vuelves a hacer git status, verás que todo se habrá puesto en verde.)
+
+Comando para fusionar una rama con main y hacer otra nueva:
+	1. Nos movemos a main
+	git checkout main
+
+	2. Absorber los cambios de tu rama de Mayo
+	git merge develop_01_Mayo_2026
+
+	3. Subir el main actualizado a tu nube (GitHub/GitLab)
+	git push origin main
+
 
 *******************************
 ENTREGAS A PRODUCCION DOCKER

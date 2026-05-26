@@ -43,7 +43,7 @@ public class UsuarioController {
      *    Bad Request con el mensaje de error correspondiente
      * param usuario
      * param perfil
-     * return
+     * return ResponseEntity con la información del usuario registrado o un mensaje de error
      */
     @PostMapping("/register") // Define que este método manejará las solicitudes POST a la ruta "/auth/register", lo que significa que los clientes deben enviar una solicitud POST a esta ruta para registrar un nuevo usuario
     public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
@@ -57,4 +57,35 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    /**
+     * Este método maneja las solicitudes POST a la ruta "/auth/login" para autenticar a un usuario existente en el sistema. Realiza las siguientes acciones:
+     * 1. Recibe la información del usuario a través del cuerpo de la solicitud
+     * 2. Llama al método login del UsuarioService para realizar el proceso de autenticación, que incluye la validación de las credenciales del usuario
+     * 3. Si la autenticación es exitosa, devuelve una respuesta HTTP 200 OK con la información del usuario autenticado
+     * 4. Si ocurre algún error durante el proceso (como credenciales incorrectas), devuelve una respuesta HTTP 400 Bad Request con el mensaje de error correspondiente
+     * param usuario La información del usuario que se intenta autenticar, incluyendo el correo electrónico y la contraseña   
+     * return ResponseEntity con la información del usuario autenticado o un mensaje de error
+     */
+    @PostMapping("/login") // Define que este método manejará las solicitudes POST a la ruta "/auth/login", lo que significa que los clientes deben enviar una solicitud POST a esta ruta para iniciar sesión con un usuario existente 
+    public ResponseEntity<?> login(@RequestBody Usuario usuario) {
+
+        try {
+            // Llamamos al servicio para autenticar al usuario, pasando la información del usuario.
+            String token = usuarioService.login(usuario);
+            // Si la autenticación es exitosa, devolvemos una respuesta HTTP 200 OK con la información del usuario autenticado
+            return ResponseEntity.ok(token);
+
+        } catch (RuntimeException e) {
+            // Si el servicio lanza un error (credenciales incorrectas, etc.), devolvemos un 400 Bad Request con el mensaje
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+    }
+
+    @GetMapping("/listado_usuarios") 
+    public ResponseEntity<?> listadoUsuarios() {
+        return ResponseEntity.ok(usuarioService.listarUsuarios());
+    }
+    
 }

@@ -4,6 +4,10 @@ import com.plataformadeportiva.auth_service.models.PerfilUsuario;
 import com.plataformadeportiva.auth_service.models.Usuario;
 import com.plataformadeportiva.auth_service.repositories.PerfilUsuarioRepository;
 import com.plataformadeportiva.auth_service.repositories.UsuarioRepository;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,9 @@ public class UsuarioService {
 
     @Autowired
     private PerfilUsuarioRepository perfilUsuarioRepository; // Inyección de dependencia del PerfilUsuarioRepository para acceder a la base de datos y realizar operaciones CRUD relacionadas con los perfiles de usuario
+
+    @Autowired
+    private JwtService jwtService; // Inyección de dependencia del JwtService para generar tokens JWT para los usuarios autenticados, lo que permite implementar la autenticación basada en tokens JWT en la plataforma deportiva
 
     @Autowired
     private PasswordEncoder passwordEncoder; // <-- Inyectamos el encriptador que creamos en SecurityConfig
@@ -68,4 +75,39 @@ public class UsuarioService {
         // 7. Guardar en la tabla gpdd_usuarios
         return usuarioRepository.save(nuevoUsuario);
     }
+
+    /**
+     * Este método se encarga de autenticar a un usuario existente en el sistema. Realiza las siguientes acciones:
+     * 1. Busca el usuario en la base de datos por su nombre de usuario. Si no lo encuentra, lanza una excepción indicando que el nombre de usuario no está registrado.
+     * 2. Valida la contraseña en texto plano que viene en la solicitud con la contraseña encriptada que tenemos en la base de datos utilizando el método matches del PasswordEncoder. Si las contraseñas coinciden, genera un token JWT para el usuario autenticado. 
+     * Si las contraseñas no coinciden, lanza una excepción indicando que la contraseña es incorrecta.
+     * param usuario    // El objeto Usuario que contiene la información del usuario que se intenta autenticar, incluyendo su nombre de usuario y contraseña en texto plano  
+     * return // El objeto Usuario autenticado, incluyendo su información y un token JWT
+     */
+    public String login(Usuario usuario) {
+
+        // 1. Buscamos el usuario en la base de datos por su nombre de usuario. Si no lo encontramos, lanzamos una excepción indicando que el nombre de usuario no está registrado.
+        Usuario user = Optional.ofNullable(usuarioRepository.findByUsuario(usuario.getUsuario())).orElseThrow(() -> new RuntimeException("El nombre de usuario no está registrado."));
+
+        // 2. Validar la contraseña en texto plano que viene en la solicitud con la contraseña encriptada que tenemos en la base de datos utilizando el método matches del PasswordEncoder. Si las contraseñas coinciden, generamos un token JWT para el usuario autenticado. Si las contraseñas no coinciden, lanzamos una excepción indicando que la contraseña es incorrecta.
+        if (!passwordEncoder.matches(usuario.getPassword(), user.getPassword())) {
+            throw new RuntimeException("La contraseña es incorrecta.");
+        }
+
+        
+        String token = jwtService.generateToken(user.getUsuario());
+        return token;
+
+    }
+
+    /**
+     * Este método se encarga de listar todos los usuarios registrados en el sistema.
+     * 1. Consulta la base de datos para obtener todos los usuarios.
+     * 2. Devuelve la lista de usuarios encontrados.
+     * return // La lista de usuarios registrados en el sistema
+     */
+    public List<Usuario> listarUsuarios() {
+        return usuarioRepository.findAll();
+    }
+
 }
