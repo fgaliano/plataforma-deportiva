@@ -57,13 +57,96 @@ Vamos a estructurarlo en dos partes: cómo organizar las ramas en Git para produ
 		1.3 Vamos a congelar lo que tenemos ahora, asegurar que está en develop y crear la rama main para hacer el despliegue.
 		1.4 Asegura tus cambios actuales en develop.
 			cd d:\repos_GIT\plataforma-deportiva
-			git checkout -b develop --> crea la rama develop y se mueve a ella
+			git checkout -b develop_01_Mayo_2026 --> crea la rama develop y se mueve a ella
 			git add . --> añade todos los cambios.
 			git commit -m "Build: Preparando release para producción" --> se hace commit.
-			git push origin develop --> y se guardan en la rama develop.
+			git push origin develop_01_Mayo_2026 --> y se guardan en la rama develop.
 			
 		1.5 Crea la rama de producción (main) a partir de tus cambios:
 			git checkout -b main --> crea la rama main a partir de estos ultimos cambios y se posiciona en ella.
+		1.6 Dockerfile: Ve a tu editor de archivos en VS Code y, dentro de la carpeta backend-services/auth_service, crea un archivo nuevo llamado Dockerfile 
+		    (sin ninguna extensión, solo ese nombre).	
+
+			# --- ETAPA 1: Compilación (Cambiado a Java 21) ---
+			FROM maven:3.9.6-eclipse-temurin-21 AS builder
+			WORKDIR /app
+
+			# Copiamos el pom y el código fuente para compilar
+			COPY pom.xml .
+			COPY src ./src
+
+			# Compilamos el jar empaquetado saltándonos los tests
+			RUN mvn clean package -DskipTests
+
+			# --- ETAPA 2: Ejecución en Producción (Cambiado a JRE 21) ---
+			FROM eclipse-temurin:21-jre-jammy
+			WORKDIR /app
+
+			# Nos traemos el archivo .jar generado en la etapa anterior
+			COPY --from=builder /app/target/*.jar app.jar
+
+			# Exponemos el puerto del microservicio
+			EXPOSE 8081
+
+			# Comando para arrancar tu aplicación de Spring Boot
+			ENTRYPOINT ["java", "-jar", "app.jar"]
+
+		1.7 Modifica tu docker-compose.yml (se añaden los servicios nuevos al que habia solo la bbdd)
+			Sustituye por completo el contenido de tu archivo por este. He fusionado tu base de datos actual con el nuevo contenedor del backend cuidando 
+			perfectamente la indentación (los espacios):
+
+			services:
+			# ################################################
+			# 1. El motor de nuestra Base de Datos
+			# ################################################
+			bbdd-plataforma:
+				image: postgres:15-alpine
+				container_name: postgres_deportivo
+				restart: always
+				environment:
+				POSTGRES_DB: bbdd-plataforma
+				POSTGRES_USER: admin
+				POSTGRES_PASSWORD: 123456789
+				ports:
+				- "5432:5432"
+				volumes:
+				- data-deportiva:/var/lib/postgresql/data
+				networks:
+				- red-deportiva
+
+			# ################################################
+			# 2. Tu Microservicio de Autenticación (¡NUEVO!)
+			# ################################################
+			auth-service:
+				container_name: auth_service_container
+				restart: always
+				build:
+				context: ./backend-services/auth_service
+				dockerfile: Dockerfile
+				ports:
+				- "8081:8081"
+				environment:
+				# Apuntamos la URL al nombre del contenedor de la BBDD 'bbdd-plataforma'
+				- SPRING_DATASOURCE_URL=jdbc:postgresql://bbdd-plataforma:5432/bbdd-plataforma
+				- SPRING_DATASOURCE_USERNAME=admin
+				- SPRING_DATASOURCE_PASSWORD=123456789
+				depends_on:
+				- bbdd-plataforma
+				networks:
+				- red-deportiva
+
+			# Volúmenes para que los datos no se borren al apagar el contenedor
+			volumes:
+			data-deportiva:
+
+			# Red interna para que los microservicios se hablen entre sí en el futuro
+			networks:
+			red-deportiva:
+				driver: bridge
+
+		1.8 Lanzar el Stack: Guarda el archivo, abre tu terminal en la raíz (plataforma-deportiva) y dale caña al comando de despliegue.
+			docker compose up --build -d
+
 
 *******************************
 GENERAR JAVADOC
