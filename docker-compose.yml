@@ -1,5 +1,7 @@
 services:
-  # El motor de nuestra Base de Datos
+  # ################################################
+  # 1. El motor de nuestra Base de Datos
+  # ################################################
   bbdd-plataforma:
     image: postgres:15-alpine
     container_name: postgres_deportivo
@@ -12,6 +14,27 @@ services:
       - "5432:5432"
     volumes:
       - data-deportiva:/var/lib/postgresql/data
+    networks:
+      - red-deportiva
+
+  # ################################################
+  # 2. Tu Microservicio de Autenticación (¡NUEVO!)
+  # ################################################
+  auth-service:
+    container_name: auth_service_container
+    restart: always
+    build:
+      context: ./backend-services/auth_service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      # Apuntamos la URL al nombre del contenedor de la BBDD 'bbdd-plataforma'
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bbdd-plataforma:5432/bbdd-plataforma
+      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_PASSWORD=123456789
+    depends_on:
+      - bbdd-plataforma
     networks:
       - red-deportiva
 

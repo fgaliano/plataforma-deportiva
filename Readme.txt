@@ -145,7 +145,8 @@ Vamos a estructurarlo en dos partes: cómo organizar las ramas en Git para produ
 				driver: bridge
 
 		1.8 Lanzar el Stack: Guarda el archivo, abre tu terminal en la raíz (plataforma-deportiva) y dale caña al comando de despliegue.
-			docker compose up --build -d
+			docker compose down
+			docker compose up --force-recreate --build -d
 
 
 *******************************
