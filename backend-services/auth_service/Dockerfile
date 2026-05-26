@@ -9,15 +9,16 @@ COPY src ./src
 # Compilamos el jar empaquetado saltándonos los tests
 RUN mvn clean package -DskipTests
 
-# --- ETAPA 2: Ejecución en Producción (Cambiado a JRE 21) ---
+# --- ETAPA 2: Ejecución en Producción ---
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-# Nos traemos el archivo .jar generado en la etapa anterior
-COPY --from=builder /app/target/*.jar app.jar
+# 🎯 Forzamos a copiar el JAR que NO es el .original o especificamos su patrón exacto:
+COPY --from=builder /app/target/auth_service-0.0.1-SNAPSHOT.jar app.jar
 
-# Exponemos el puerto del microservicio
+# Si tu archivo se llama diferente (míralo en tu pom.xml el <artifactId> y <version>), 
+# puedes usar esta alternativa que descarta el .original:
+# COPY --from=builder /app/target/*[^o][^r][^i][^g][^i][^n][^a][^l].jar app.jar
+
 EXPOSE 8081
-
-# Comando para arrancar tu aplicación de Spring Boot
 ENTRYPOINT ["java", "-jar", "app.jar"]

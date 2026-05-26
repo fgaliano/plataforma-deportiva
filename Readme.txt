@@ -148,6 +148,12 @@ Vamos a estructurarlo en dos partes: cómo organizar las ramas en Git para produ
 			docker compose down
 			docker compose up --force-recreate --build -d
 
+		1.9 Si da error: no main manifest attribute, in app.jar
+			añadir esto al pom.xml
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>	
 
 *******************************
 GENERAR JAVADOC
