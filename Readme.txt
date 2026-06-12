@@ -723,3 +723,144 @@ Paso 11: Arquitectura y flujo de datos
 				 (fuera de la declaracion de la clase)
 
 
+*******************************
+CREANDO EL FRONT
+*******************************
+
+Paso 1: Crear la estructura de carpetas.	
+
+	Paso 1.1. El Punto de Entrada (index.html): Este archivo va en la raíz de tu carpeta auth_front_app, Es la estructura fija que nunca se recarga; solo muta su contenido central.
+		frontend-apps/auth_front_app/index.html
+	Paso 1.2. El Vestido Estético: css/styles.css: Este archivo va dentro de la carpeta css/. Define los colores oscuros estilo deportivo, las fuentes y el diseño modular de las tarjetas y botones.	
+		frontend-apps/auth_front_app/css/styles.css
+	Paso 3.2. El Motor SPA: js/app.js: Este archivo va dentro de la carpeta js/. Controla el enrutamiento interno de la página y dispara las peticiones asíncronas hacia el backend en Docker de forma transparente.
+		frontend-apps/auth_front_app/js/app.js
+
+		NOTA: La programación síncrona ejecuta las tareas una tras otra de forma secuencial; el programa se bloquea y debe esperar a que finalice un proceso para continuar con el siguiente.
+			  La programación asíncrona permite ejecutar tareas en segundo plano. El programa continúa ejecutándose sin bloquearse y procesa el resultado de la tarea cuando esta termina.
+
+	Paso 4.3. Creamos la subcarpeta de componentes
+
+		frontend-apps
+		└── auth_front_app
+			├── componentes
+			│   ├── home.html        <-- Solo el trozo de HTML de la Home
+			│   ├── login.html       <-- Solo el trozo de HTML del Login
+			│   └── registro.html    <-- Solo el trozo de HTML del Registro
+			├── css
+			├── js
+			└── index.html
+
+	Paso 4.4: 	
+		Ahora que el HTML vive en archivos separados, podemos eliminar por completo el diccionario const vistas = { ... } que ocupaba medio archivo.
+		En su lugar, modificamos la función cargarVista para que sea asíncrona, vaya a buscar el archivo correspondiente a la carpeta componentes/ y lo cargue dinámicamente:
+
+
+Paso 5: Configurar el proyecto con Módulos de JavaScript:
+	Tu monorepo va a quedar con una estructura idéntica a la que usan los desarrolladores senior en proyectos de gran envergadura.
+
+	Vamos a romper el archivo único y repartir la lógica en cajas totalmente aisladas. Sigue estos pasos para reestructurar los ficheros en tu carpeta auth_front_app:
+
+	frontend-apps
+	└── auth_front_app
+		├── componentes
+		│   ├── home.html
+		│   ├── login.html
+		│   └── registro.html
+		├── js
+		│   ├── app.js            <-- Sigue siendo el motor central
+		│   ├── login.js          <-- 🔄 Antes login-logic.js (Emparejado con login.html)
+		│   └── registro.js       <-- 🔄 Antes reg-logic.js (Emparejado con registro.html)
+		└── index.html
+
+	Paso 5.1: 
+		El punto de entrada único (index.html): Este archivo va en la raíz de la carpeta auth_front_app. Es la estructura fija y solo tiene una etiqueta de script de tipo módulo.
+
+	Paso 5.2: Los estilos modernos (css/styles.css)
+		Este archivo va dentro de la carpeta css/. Le da el toque oscuro y deportivo a toda la aplicación.
+
+	Paso 5.3: Los fragmentos visuales (Carpeta componentes/)
+		Crea estos tres archivos independientes con sus trozos limpios de HTML.	
+
+	Paso 5.4: Los módulos lógicos (Carpeta js/)
+		Aquí es donde repartimos la inteligencia del programa de manera emparejada.	
+
+
+	Explicación del Flujo del Frontend (SPA Dinámica)
+	Nuestra arquitectura está basada en una SPA (Single Page Application) con Carga Dinámica de Módulos. El viaje que hace tu aplicación funciona así:
+
+		1. Arranque (index.html): El usuario entra a la web. El navegador lee el index.html (nuestro lienzo fijo) y carga exclusivamente el motor central: js/app.js.
+		2. Enrutamiento inicial: Al cargar la página, js/app.js detecta el evento y dispara de forma automática la función cargarVista('home').
+		3. Petición del componente: js/app.js hace una petición interna (fetch) a la carpeta componentes/home.html, se descarga ese trozo de código y lo inyecta dentro de la etiqueta <main id="main-content">.
+		4. Interacción del Usuario: Cuando el usuario pincha en "Iniciar Sesión" en el Navbar, se ejecuta cargarVista('login').
+		5. Carga Inteligente (Split-Coding):
+			
+			5.1 El motor descarga el archivo visual componentes/login.html.
+			5.2 El motor evalúa que la vista es 'login' y, mediante un import() dinámico, descarga al vuelo el archivo de lógica js/login.js, colgando sus funciones 
+				en el entorno global (window.ejecutarLogin).
+
+		6. Comunicación con el Backend (Docker): Cuando el usuario rellena el formulario de login y le da a enviar (onsubmit), la función ejecutarLogin() toma el control, 
+		   empaqueta los datos en un JSON y dispara un fetch() hacia el puerto de tu contenedor de Docker (http://localhost:8081/api/auth/login)		
+
+		7. Respuesta y Almacenamiento: El Backend procesa la solicitud y devuelve un JSON con el token JWT. El script js/login.js recibe ese token, lo guarda de forma segura en el localStorage del navegador
+		   y le ordena al motor central (window.cargarVista('home')) que limpie la pantalla y vuelva a la página de bienvenida.
+
+		================================================================================
+		FLUJO DE ARQUITECTURA: FRONTEND MODULAR (SPA) <--> BACKEND (DOCKER)
+		================================================================================
+
+		[ Navegador del Usuario ]
+			│
+			▼ (1. Abre la Web)
+		┌────────────┐
+		│ index.html │ <─── (Lienzo fijo con Navbar y contenedor <main>)
+		└─────┬──────┘
+			│
+			▼ (2. Carga Inicial)
+		┌────────────┐
+		│  js/app.js │ <─── (Motor central / Enrutador "conserje")
+		└─────┬──────┘
+			│
+			├─► (3. Al pinchar en un botón del Navbar: ej. 'login')
+			│   │
+			│   ├───► [ fetch local ] ──────► ┌────────────────────────┐
+			│   │                             │ componentes/login.html │ (Solo HTML plano)
+			│   │                             └──────────┬─────────────┘
+			│   │                                        │ (Inyecta código)
+			│   │                                        ▼
+			│   │                             ┌────────────────────────┐
+			│   │                             │ <main id="main-content">│ (Lienzo mutado)
+			│   │                             └────────────────────────┘
+			│   │
+			│   └───► [ import dinámico ] ──► ┌────────────────────────┐
+			│                                 │       js/login.js      │ (Descarga lógica al vuelo)
+			│                                 └──────────┬─────────────┘
+			│                                            │
+			▼                                            ▼ (4. El usuario envía el formulario)
+		┌─────────────────────────────────────────────────────────────────────────────┐
+		│                      PETICIÓN HTTP ASÍNCRONA (Fetch API)                    │
+		└──────────────────────────────────────┬──────────────────────────────────────┘
+												│
+												▼ (Envía JSON vía POST con usuario/clave)
+								┌──────────────────────────────┐
+								│   http://localhost:8081/api  │
+								└──────────────┬─────────────── Legenda:
+											│                =========
+											▼                [ Front ] lives in Browser
+								┌──────────────────────────────┐ [ Back  ] lives in Docker
+								│    BACKEND: Spring Boot      │
+								│    (Contenedor Docker)       │
+								└──────────────┬───────────────┘
+											│
+											▼ (Valida en BD e imprime Token JWT)
+								┌──────────────────────────────┐
+								│    RESPUESTA: JSON + JWT     │
+								└──────────────┬─────────────── Punch de vuelta al navegador
+											│
+											▼
+		┌─────────────────────────────────────────────────────────────────────────────┐
+		│       js/login.js procesa la respuesta de Spring Boot                       │
+		├─────────────────────────────────────────────────────────────────────────────┤
+		│  1. Guarda el JWT ───────► [ localStorage: 'token_deportivo' ] (Memoria)    │
+		│  2. Ordena redirigir ────► window.cargarVista('home') (Limpia pantalla)     │
+ 		└─────────────────────────────────────────────────────────────────────────────┘		   
