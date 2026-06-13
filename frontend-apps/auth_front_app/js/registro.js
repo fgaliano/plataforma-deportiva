@@ -1,9 +1,9 @@
-const API_BASE_URL = "http://localhost:8081/api"; 
+const API_BASE_URL = "http://localhost:8081"; 
 
-export async function ejecutarRegistro(event) {
+// 1. Lógica interna del formulario (Privada)
+async function ejecutarRegistro(event) {
     event.preventDefault(); 
     
-    // 1. Capturamos el botón del formulario y los textos de alerta
     const formulario = event.target;
     const botonSubmit = formulario.querySelector("button[type='submit']");
     const errorTxt = document.getElementById("reg-error");
@@ -13,7 +13,6 @@ export async function ejecutarRegistro(event) {
     const email = document.getElementById("reg-email").value;
     const password = document.getElementById("reg-password").value;
     
-    // 2. ACTIVAMOS EL ESTADO "CARGANDO"
     errorTxt.style.display = "none";
     successTxt.style.display = "none";
     botonSubmit.innerText = "Creando cuenta... ⏳";
@@ -33,14 +32,21 @@ export async function ejecutarRegistro(event) {
 
         successTxt.innerText = "¡Usuario registrado con éxito! Ya puedes iniciar sesión.";
         successTxt.style.display = "block";
-        formulario.reset(); // Resetea el formulario usando la variable limpia
+        formulario.reset(); 
 
     } catch (error) {
         errorTxt.innerText = error.message;
         errorTxt.style.display = "block";
     } finally {
-        // 3. DESACTIVAMOS EL ESTADO "CARGANDO"
         botonSubmit.innerText = "Crear Cuenta";
         botonSubmit.classList.remove("cargando");
+    }
+}
+
+// 2. 🚀 Función de enganche (Pública)
+export function inicializarRegistro() {
+    const formulario = document.getElementById("form-register");
+    if (formulario) {
+        formulario.addEventListener("submit", ejecutarRegistro);
     }
 }

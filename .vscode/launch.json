@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-AuthServiceApplication<auth_service>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "com.plataformadeportiva.auth_service.AuthServiceApplication",
+      "projectName": "auth_service",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Depurar Frontend en Chrome",
+      "url": "http://127.0.0.1:5500/frontend-apps/auth_front_app/index.html",
+      "webRoot": "${workspaceFolder}/frontend-apps/auth_front_app"
+    }
+  ]
+}

@@ -8,6 +8,39 @@ PASAR UN TXT a HTML
 	2. 	
 
 *******************************
+ PROBAR BACK Y FRONT
+*******************************
+
+Para probarlo todo a la vez desde VS Code, sí, lo ideal es abrir dos terminales independientes
+
+	1. Back: El Backend en Vivo (Spring Boot), mejor buscar archivo AuthServiceApplication y ejecutar desde el menu Run de vscode
+	2. Front: añadir esto por cada front en launch.json QUE ESTA DENTRO DE .vscode
+
+			{
+		"configurations": [
+			{
+			"type": "java",
+			"name": "Spring Boot-AuthServiceApplication<auth_service>",
+			"request": "launch",
+			"cwd": "${workspaceFolder}",
+			"mainClass": "com.plataformadeportiva.auth_service.AuthServiceApplication",
+			"projectName": "auth_service",
+			"args": "",
+			"envFile": "${workspaceFolder}/.env"
+			},
+			{
+			"type": "chrome",
+			"request": "launch",
+			"name": "Depurar Frontend en Chrome",
+			"url": "http://127.0.0.1:5500/frontend-apps/auth_front_app/index.html",
+			"webRoot": "${workspaceFolder}/frontend-apps/auth_front_app"
+			}
+		]
+		}
+
+	
+
+*******************************
 COMANDOS GIT
 *******************************
 
@@ -81,6 +114,7 @@ Vamos a estructurarlo en dos partes: cómo organizar las ramas en Git para produ
 			git add . --> añade todos los cambios.
 			git commit -m "Build: Preparando release para producción" --> se hace commit.
 			git push origin develop_01_Mayo_2026 --> y se guardan en la rama develop.
+			git push -u origin develop_02_Junio_2026
 			
 		1.5 Crea la rama de producción (main) a partir de tus cambios:
 			git checkout -b main --> crea la rama main a partir de estos ultimos cambios y se posiciona en ella.
@@ -724,7 +758,7 @@ Paso 11: Arquitectura y flujo de datos
 
 
 *******************************
-CREANDO EL FRONT
+CREANDO EL FRONT esto es VANILA JS
 *******************************
 
 Paso 1: Crear la estructura de carpetas.	
@@ -864,3 +898,25 @@ Paso 5: Configurar el proyecto con Módulos de JavaScript:
 		│  1. Guarda el JWT ───────► [ localStorage: 'token_deportivo' ] (Memoria)    │
 		│  2. Ordena redirigir ────► window.cargarVista('home') (Limpia pantalla)     │
  		└─────────────────────────────────────────────────────────────────────────────┘		   
+
+
+Paso 6: Configurar CORS para que al tener el back en una ruta y el fron en otra no de error el navegador.
+
+	En SecurityConfig de cada backend hay que poner quien tiene permiso de comunicarse con el.
+		
+		// Para ser más explícitos y seguros, vamos a listar los orígenes permitidos en lugar de usar un comodín
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost","http://localhost:5500"));
+
+Paso 7: Control de errores del back y mostrar en el front.
+
+		// 🚨 CAPTURAMOS EL ERROR Y DEVOLVEMOS UN JSON
+        // Creamos un mapa que Spring convertirá automáticamente a {"message": "El nombre de..."}
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("message", e.getMessage());
+
+		// Devolvemos un 401 (No autorizado) o 404 (No encontrado) con el JSON dentro
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+
+*******************************
+CREANDO EL FRONT con react
+*******************************		

@@ -2,7 +2,12 @@ package com.plataformadeportiva.auth_service.controllers;
 
 import com.plataformadeportiva.auth_service.models.Usuario;
 import com.plataformadeportiva.auth_service.services.UsuarioService;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,9 +82,15 @@ public class UsuarioController {
             return ResponseEntity.ok(token);
 
         } catch (RuntimeException e) {
-            // Si el servicio lanza un error (credenciales incorrectas, etc.), devolvemos un 400 Bad Request con el mensaje
-            return ResponseEntity.badRequest().body(e.getMessage());
+            //  CAPTURAMOS EL ERROR Y DEVOLVEMOS UN JSON
+            // Creamos un mapa que Spring convertirá automáticamente a {"message": "El nombre de..."}
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+        
+            // Devolvemos un 401 (No autorizado) o 404 (No encontrado) con el JSON dentro   
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
+
 
     }
 

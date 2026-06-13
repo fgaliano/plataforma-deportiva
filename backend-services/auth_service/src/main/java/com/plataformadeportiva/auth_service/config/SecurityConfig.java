@@ -68,7 +68,7 @@ public class SecurityConfig {
         //configuration.setAllowedOriginPatterns(List.of("*")); // 👈 Con "Patterns" sí se permite el asterisco
 
         // Para ser más explícitos y seguros, vamos a listar los orígenes permitidos en lugar de usar un comodín
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost","http://localhost:5500"));
         
         // Métodos HTTP permitidos para la API
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
