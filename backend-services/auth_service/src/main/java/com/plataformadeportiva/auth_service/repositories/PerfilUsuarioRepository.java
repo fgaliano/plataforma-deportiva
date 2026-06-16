@@ -3,6 +3,8 @@ package com.plataformadeportiva.auth_service.repositories; // <-- Con el guion b
 import com.plataformadeportiva.auth_service.models.PerfilUsuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -20,4 +22,6 @@ public interface PerfilUsuarioRepository extends JpaRepository<PerfilUsuario, Lo
 
     // Método para buscar un perfil por su ID (Long id_perfil)
     Optional<PerfilUsuario> findById(Long id_perfil);
+
+    List<PerfilUsuario> findAll(); // Método para obtener todos los perfiles de usuario
 }

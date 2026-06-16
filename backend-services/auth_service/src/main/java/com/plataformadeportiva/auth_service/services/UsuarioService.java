@@ -4,11 +4,8 @@ import com.plataformadeportiva.auth_service.models.PerfilUsuario;
 import com.plataformadeportiva.auth_service.models.Usuario;
 import com.plataformadeportiva.auth_service.repositories.PerfilUsuarioRepository;
 import com.plataformadeportiva.auth_service.repositories.UsuarioRepository;
-
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,17 +21,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository; // Inyección de dependencia del UsuarioRepository para acceder a la base de datos y realizar operaciones CRUD relacionadas con los usuarios
+    private final UsuarioRepository usuarioRepository; // Inyección de dependencia del UsuarioRepository para acceder a la base de datos y realizar operaciones CRUD relacionadas con los usuarios
+    private final PerfilUsuarioRepository perfilUsuarioRepository; // Inyección de dependencia del PerfilUsuarioRepository para acceder a la base de datos y realizar operaciones CRUD relacionadas con los perfiles de usuario
+    private final JwtService jwtService; // Inyección de dependencia del JwtService para generar tokens JWT para los usuarios autenticados, lo que permite implementar la autenticación basada en tokens JWT en la plataforma deportiva
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PerfilUsuarioRepository perfilUsuarioRepository; // Inyección de dependencia del PerfilUsuarioRepository para acceder a la base de datos y realizar operaciones CRUD relacionadas con los perfiles de usuario
-
-    @Autowired
-    private JwtService jwtService; // Inyección de dependencia del JwtService para generar tokens JWT para los usuarios autenticados, lo que permite implementar la autenticación basada en tokens JWT en la plataforma deportiva
-
-    @Autowired
-    private PasswordEncoder passwordEncoder; // <-- Inyectamos el encriptador que creamos en SecurityConfig
+    UsuarioService(UsuarioRepository usuarioRepository, PerfilUsuarioRepository perfilUsuarioRepository, JwtService jwtService, PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
+        this.perfilUsuarioRepository = perfilUsuarioRepository;
+        this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+    } // <-- Inyectamos el encriptador que creamos en SecurityConfig
     /**
      * Este método se encarga de registrar un nuevo usuario en el sistema. Realiza las siguientes acciones:
      * 1. Valida si el nombre de usuario ya existe en la base de datos

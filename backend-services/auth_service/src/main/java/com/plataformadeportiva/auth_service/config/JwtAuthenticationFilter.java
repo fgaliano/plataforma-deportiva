@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try{
 
                 //  Si la ruta es de autenticación (registro o login), no validamos el token y dejamos pasar la solicitud sin autenticación, ya que estas rutas deben ser accesibles sin autenticación para permitir a los usuarios 
-                if (request.getServletPath().contains("/auth/register") || request.getServletPath().contains("/auth/login")) {
+                if (request.getServletPath().contains("/auth/register") || request.getServletPath().contains("/auth/login") || request.getServletPath().contains("/perfil/listarPerfiles")) {
                     filterChain.doFilter(request, response);
                     return;
                 }

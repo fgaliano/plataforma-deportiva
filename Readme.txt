@@ -920,3 +920,196 @@ Paso 7: Control de errores del back y mostrar en el front.
 *******************************
 CREANDO EL FRONT con react
 *******************************		
+	Paso 1: Crear la estructura con Vite
+		Primero, asegúrate de estar situado en la carpeta donde quieres que viva tu proyecto (por ejemplo, frontend-apps). Si estás en la raíz de tu proyecto, haz cd hacia ella.
+		Una vez ahí, ejecuta este comando exacto para generar la plantilla limpia de React
+
+			npm create vite@latest auth_service_front -- --template react
+
+	Paso 2: Entrar e instalar las dependencias
+		Vite habrá creado una carpeta llamada auth_service_front. Ahora tenemos que meternos dentro de esa carpeta e instalar los paquetes nativos de React 
+		(como la propia librería de React y los motores de desarrollo).				
+
+		cd auth_service_front
+		npm install
+
+	Paso 3: Encender el motor	
+		npm run dev
+
+	Paso 4: Creación de carpetas.
+
+		src/
+		├── assets/             # Archivos estáticos: imágenes, logos, vectores (SVG), fuentes.
+		├── components/         # Componentes "globales" y reutilizables por TODA la app (Botones comunes, Inputs genéricos, Spinners de carga).
+		├── config/             # Variables de entorno, constantes globales y configuraciones de clientes como  (ajax).
+		├── context/            # Gestión del estado global (por ejemplo, los datos del usuario logueado o el token JWT accesibles desde cualquier sitio).
+		├── features/           # EL CORAZÓN DE LA APP. Se divide por módulos o funcionalidades del negocio.
+		│   ├── auth/           # Todo lo relacionado con Login, Registro, Recuperar Contraseña.
+		│   │   ├── components/ # Componentes exclusivos de la autenticación (FormularioLogin, BotonGoogle).
+		│   │   ├── services/   # Peticiones fetch/axios exclusivas de Auth (loginService.js).
+		│   │   └── hooks/      # Lógica de React personalizada para Auth (useAuth.js).
+		│   └── users/          # Siguiente módulo: Gestión de usuarios, listados, edición del perfil.
+		├── hooks/              # Custom Hooks globales (reutilizables en toda la app, como usar el almacenamiento local).
+		├── routes/             # Configuración del enrutador de la app (React Router) para movernos entre páginas de forma segura.
+		├── services/           # Clientes de API globales o interceptores de llamadas HTTP.
+		├── styles/             # Estilos CSS globales, temas de diseño o variables de color.
+		├── App.jsx             # El componente raíz que envuelve las rutas y los estados globales.
+		└── main.jsx            # El punto de entrada que engancha React al DOM del navegador. 	
+
+
+	Paso 5: La Filosofía de React: ¿Cómo funciona por debajo?
+		La Gran Diferencia: Renderizado en Servidor (Struts2/JSP) vs. Renderizado en Cliente (React):	
+			En el stack moderno que estás montando, Java ya no pinta pantallas. Tu Backend de Java con Spring Boot se convierte única y exclusivamente en una API REST
+			pura que solo escupe y recibe JSON. No hay JSPs, no hay Actions de Struts que devuelvan vistas. Todo el peso de la interfaz se traslada al navegador del usuario gracias a React.
+
+		Paso 5.1. El Formulario es "Reactivo" (Se acabó buscar IDs)	
+			En Struts2/JSP, para saber qué ha escrito el usuario, tu JavaScript tiene que ir al DOM a "extraer" el valor (document.getElementById('user').value).
+
+			En React, el input y la variable de JavaScript están fusionados. Mira este fragmento del código que pusimos antes:
+
+				const [usuario, setUsuario] = useState('');
+
+				<input 
+				type="text" 
+				value={usuario} 
+				onChange={(e) => setUsuario(e.target.value)} 
+				/>
+
+			En tu JS actual: El input tiene el dato y tú vas a buscarlo cuando hace falta.	
+			En React: El dato vive en la variable usuario. Cada vez que el usuario pulsa una tecla, el evento onChange actualiza la variable. 
+			El input simplemente "refleja" lo que hay en esa variable. Cuando vayas a enviar el formulario por AJAX (fetch), no tienes que leer el formulario; 
+			los datos ya los tienes listos en tus variables usuario y password.
+
+		Paso 5.2 Olvídate de ocultar y mostrar elementos a mano (.show() o .hide())	
+
+			En JSP, o bien pintas el error desde el servidor usando etiquetas de Struts (<s:property value="errorMessage"/>), 
+			o bien lo gestionas con JavaScript cambiando las clases CSS a mano para ocultar/mostrar el div.
+			En React, usamos Renderizado Condicional. El HTML reacciona al valor de tus variables de estado:
+
+				{ error && <div className="error-msg">{error}</div> }
+
+			Si la variable error está vacía (''), React directamente no crea ese fragmento de HTML en el navegador. No es que lo oculte con un display: none; es que no existe.	
+
+		Paso 5.3 Aplicación de Una Sola Página (SPA)	
+
+			Esta es la mayor diferencia con Struts2. En Struts, cuando pasas del Login a la Gestión de Usuarios, el navegador web parpadea, va al servidor, 
+			Struts procesa el nuevo JSP y te descarga una página entera nueva.
+
+			En React, el navegador nunca se recarga. Todo el Frontend (Login, Tablas, Formularios de Usuarios) se descarga al principio. 
+			Cuando el usuario se loguee con éxito, React simplemente "desmontará" el componente de Login de la pantalla y "montará" el componente 
+			de Gestión de Usuarios en el mismo sitio, de forma instantánea y sin parpadeos.
+
+
+	Paso 6: Para que entiendas la lógica de React al 100%, vamos a estructurar esto en 3 fases claras
+
+		1. El Enrutador (routes/): El que decide si se muestra la pantalla de Login o la de Registro según la URL de la web (sin recargar la página, estilo SPA).
+		2. Las Vistas/Componentes (features/auth/components/): Tus formularios oscuros con comentarios línea a línea.	
+		3. El Estado Compartido (App.jsx): El director que conecta todo.
+		4. En React, el componente funciona de manera "reactiva": los inputs no guardan la información en el HTML; la información vive en variables de JavaScript en tiempo real.
+		   Para lograr esto, usamos el concepto más importante de React: el Estado (useState).
+
+		Fase 1: Creación de los Formularios (Login y Registro)
+
+			Cualquier componente de React (como tu Login.jsx) se divide siempre en tres zonas fijas, que siempre van en el mismo orden:
+
+			1. ZONA DE IMPORTACIONES (Los "Imports")
+			- Traes herramientas de React, estilos CSS u otros componentes.
+			
+			2. ZONA DE LÓGICA (El cuerpo de la función JavaScipt)
+			- Creación de Estados (useState).
+			- Funciones de control (handleSubmit, AJAX fetch, validaciones).
+			
+			3. ZONA VISUAL (El bloque RETURN)
+			- El código HTML (JSX) que se va a pintar en el navegador.
+
+			// =========================================================
+			// 1. ZONA DE IMPORTACIONES (Igual que los "import" de Java o los tags de JSP)
+			// =========================================================
+			import React, { useState } from 'react';
+			import '../../../styles/login.css';
+
+			// Declaras la función principal (El componente)
+			function Login({ onNavigate }) {
+
+			// =======================================================
+			// 2. ZONA DE LÓGICA (Tu código JavaScript puro y duro)
+			// =======================================================
+			const [usuario, setUsuario] = useState('');
+			const [password, setPassword] = useState('');
+
+			const handleSubmit = (e) => {
+				e.preventDefault();
+				// Validaciones, llamadas AJAX, etc.
+			};
+
+			// =======================================================
+			// 3. ZONA VISUAL (El bloque RETURN)
+			// =======================================================
+			// El return marca el final de la lógica y el inicio de la pantalla.
+			return (
+				<div className="login-container">
+				<h2>Iniciar Sesión</h2>
+				<form onSubmit={handleSubmit}>
+					{/* Tu HTML aquí... */}
+				</form>
+				</div>
+			);
+			}
+
+			export default Login;			
+
+
+
+	Paso 7: Resumen de como funciona.
+
+		========================================================================
+		ARQUITECTURA DE FRONTEND: ECOINTEGRACIÓN DE REACT (Mente Struts2 / Java)
+		========================================================================
+
+		1. ARCHIVO ÚNICO (SPA - Single Page Application)
+		- index.html: El único HTML real del front de la aplicación/microservicio. 
+			Contiene un <div id="root"></div> que actúa como escenario vacío. No se toca NUNCA.
+		
+		2. EL ENGANCHADOR (main.jsx)
+		- Inyecta el componente principal (<App />) y los estilos CSS globales dentro 
+			del escenario 'root' del index.html. Equivale al cargador inicial de la app web.
+
+		3. EL CONTROLADOR CENTRAL (App.jsx -> "El struts-config.xml")
+		- Orquesta y gestiona la navegación declarativa del Front sin peticiones al servidor.
+		- Importa todos los componentes (Home, Login, Registro) y decide cuál se pinta.
+		- Usa 'useState' para almacenar la variable en memoria de la pantalla visible.
+
+		4. EL MOTOR DE REACTIVIDAD (useState)
+		- const [pantallaActual, setPantallaActual] = useState('home');
+		- pantallaActual: Variable de lectura del estado actual.
+		- setPantallaActual: Función modificadora ("El interruptor"). Al invocarla, 
+			React destruye el HTML viejo en memoria y renderiza el nuevo componente al instante.
+
+		5. PASO DE PARÁMETROS (Props y Callbacks)
+		- El padre (App.jsx) delega la función de navegación a sus componentes hijos 
+			mediante propiedades (<Home onNavigate={navegarA} />).
+		- El hijo ejecuta la función pasando el parámetro mediante eventos del cliente:
+			onClick={() => onNavigate('login')}	
+
+		======================================================================================
+							FLUJO DE RENDERIZADO E INYECCIÓN DE COMPONENTES
+		======================================================================================
+
+		[ index.html ] ──(Contiene <div id="root">)
+			│
+			▼
+		[ main.jsx ]   ──(Inyecta el arranque de React en el 'root')
+			│
+			▼
+		[ App.jsx ]    ──(El "struts-config.xml" / Cerebro de la Aplicación)
+			│
+			├──► Guarda el Estado: const [pantallaActual] = useState('home')
+			│
+			└──► Renderizado Condicional (Evaluación de Estado en Cliente):
+					│
+					├──► Si 'home'     ──► Inyecta [ Home.jsx ] (Fuera de features por genérico)
+					├──► Si 'login'    ──► Inyecta [ Login.jsx ] (Dentro de features/auth)
+					└──► Si 'registro' ──► Inyecta [ Registro.jsx ] (Dentro de features/register)
+			▲
+			│ (onNavigate('login') / Evento onClick dispara la función modificadora del Padre)
+			└──────────────────────────────────────────────────────────────────────────────┘

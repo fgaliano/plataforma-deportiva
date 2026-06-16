@@ -1,0 +1,107 @@
+/* Estilo para resaltar los inputs vacíos */
+input.input-error {
+  background-color: rgba(239, 68, 68, 0.15) !important; /* Un rojo sutil que encaja con el modo oscuro */
+  border: 1px solid #ef4444 !important; /* Borde rojo */
+}
+
+select.input-error {
+  background-color: rgba(239, 68, 68, 0.15) !important; /* Un rojo sutil que encaja con el modo oscuro */
+  border: 1px solid #ef4444 !important; /* Borde rojo */
+}
+
+
+/* Estilos para el contenedor input-group cuando lleva un select */
+.input-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: #f4f4f5; /* Texto claro (zinc-100) */
+  background-color: #18181b; /* Fondo oscuro a juego con tus inputs (zinc-900) */
+  border: 1px solid #3f3f46; /* Borde sutil (zinc-700) */
+  border-radius: 0.375rem; /* Esquinas ligeramente redondeadas */
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  
+  /* Esto elimina la flecha fea por defecto del navegador */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  
+  /* Añadimos una flecha personalizada minimalista usando un SVG en base64 */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem; /* Espacio para que el texto no pise la flecha */
+  cursor: pointer;
+}
+
+/* Efecto Focus: Cuando el usuario hace clic en el select */
+.input-group select:focus {
+  border-color: #10b981; /* Borde verde esmeralda, igual que tu botón */
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); /* Efecto de brillo sutil */
+}
+
+/* Estilos para las opciones desplegables dentro del select */
+.input-group select option {
+  background-color: #18181b; /* Fondo oscuro para el desplegable completo */
+  color: #f4f4f5; /* Texto claro */
+  padding: 0.5rem;
+}
+
+/* Opción por defecto ("Seleccione perfil...") en un tono más grisáceo */
+.input-group select option[value=""] {
+  color: #71717a; /* Color gris de placeholder (zinc-500) */
+}
+
+/* Capa de fondo que cubre absolutamente toda la ventana del navegador */
+.pantalla-bloqueo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(9, 9, 11, 0.75); /* Fondo oscuro (zinc-950) con 75% de opacidad */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* Asegura que se sitúe por encima de menús, inputs y cualquier elemento */
+  backdrop-filter: blur(4px); /* Le da un efecto de desenfoque sutil y elegante al fondo */
+}
+
+/* Caja contenedora del spinner y el mensaje */
+.bloqueo-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  background-color: #18181b; /* Fondo a juego con tus inputs (zinc-900) */
+  padding: 2.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #27272a;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); /* Sombra pronunciada para dar profundidad */
+}
+
+.bloqueo-contenido p {
+  color: #f4f4f5;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* El Spinner Grande de carga */
+.spinner-grande {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 4px solid rgba(16, 185, 129, 0.15); /* Base verde sutil */
+  border-top-color: #10b981; /* Flecha de rotación verde brillante */
+  border-radius: 50%;
+  animation: girarRapido 0.8s linear infinite;
+}
+
+/* Animación infinita */
+@keyframes girarRapido {
+  to {
+    transform: rotate(360deg);
+  }
+}

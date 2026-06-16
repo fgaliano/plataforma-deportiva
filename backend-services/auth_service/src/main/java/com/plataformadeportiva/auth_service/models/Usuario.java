@@ -56,6 +56,10 @@ public class Usuario {
     @Column(nullable = false) // Indica que este campo no puede ser nulo en la base de datos
     private String password; // La necesitaremos para que puedan iniciar sesión
 
+    @Column(nullable = true) // Indica que este campo puede ser nulo en la base de datos    
+    private String rutaFoto; // La ruta de la foto del usuario, que puede ser nula si el usuario no ha subido una foto. Este campo se utilizará para almacenar la ubicación de la foto en el sistema de archivos o en un servicio de almacenamiento externo, lo que permitirá mostrar la foto del usuario en la interfaz de usuario y mejorar la experiencia del usuario en la plataforma deportiva. 
+
+
     // Relación ManyToOne con PerfilUsuario, lo que significa que cada usuario tiene un perfil asociado
     // engancha de modo automático cel campo perfil_id con el campo id en la tabla "gpdd_usuarios" con el campo id de la tabla "gpdp_perfiles_usuarios"
     @ManyToOne(fetch = FetchType.EAGER) // Especifica que la relación se cargará de manera inmediata (EAGER), lo que significa que el perfil se cargará junto con el usuario
@@ -175,5 +179,22 @@ public class Usuario {
     public void setPerfil(PerfilUsuario perfil) {
         this.perfil = perfil;
     }
+
+    /**
+     * Getters y Setters para el campo rutaFoto. El getter permite obtener la ruta de la foto del usuario, mientras que el setter permite asignar una ruta de foto específica al crear o modificar un usuario. Este campo se utilizará para almacenar la ubicación de la foto en el sistema de archivos o en un servicio de almacenamiento externo, lo que permitirá mostrar la foto del usuario en la interfaz de usuario y mejorar la experiencia del usuario en la plataforma deportiva.
+     * param rutaFoto La ruta de la foto del usuario a asignar al crear o modificar un usuario, lo que es esencial para mantener la información del usuario actualizada y precisa en la base de datos.
+     * return La ruta de la foto del usuario.
+     */
+    public String getRutaFoto() {
+        return rutaFoto;    
+    }
+    
+    /**
+     * Setters para el campo rutaFoto. El setter permite asignar una ruta de foto específica al crear o modificar un usuario, lo que es esencial para mantener la información del usuario actualizada y precisa en la base de datos. Este campo se utilizará para almacenar la ubicación de la foto en el sistema de archivos o en un servicio de almacenamiento externo, lo que permitirá mostrar la foto del usuario en la interfaz de usuario y mejorar la experiencia del usuario en la plataforma deportiva.
+     * param rutaFoto La ruta de la foto del usuario a asignar al crear o modificar un usuario, lo que es esencial para mantener la información del usuario actualizada y precisa en la base de datos.
+     */
+    public void setRutaFoto(String rutaFoto) {
+        this.rutaFoto = rutaFoto;
+    }    
 
 }

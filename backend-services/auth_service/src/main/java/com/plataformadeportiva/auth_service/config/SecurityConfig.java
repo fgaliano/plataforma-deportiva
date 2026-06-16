@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
                 // 3. Tus endpoints públicos (Registro y Login)
-                .requestMatchers("/auth/register", "/auth/login").permitAll() 
+                .requestMatchers("/auth/register", "/auth/login","/perfil/listarPerfiles").permitAll() 
                 
                 // 4. Cualquier otra petición (como /auth/listado-usuarios) exigirá Token JWT
                 .anyRequest().authenticated()
