@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import '../../../styles/register.css'; // Subimos 3 niveles de carpetas para buscar los estilos
 import '../../../styles/forms.css'; // Subimos 3 niveles de carpetas para buscar los estilos
+// Importamos las herramientas globales
+import PantallaBloqueo from '../../../components/PantallaBloqueo';
+import { pantallaBloqueo } from '../../../hooks/pantallaBloqueo';
 
 function Registro({ onNavigate }) {
  
@@ -18,10 +21,12 @@ const [password, setPassword] = useState('');
 const [perfil, setPerfilId] = useState('');
 const [foto, setFoto] = useState(null);
 
-// Estado para controlar la carga del formulario
-const [cargando, setCargando] = useState(false);
-
+// Estado para controlar qué campos tienen errores de validación
 const [camposConErrores, setCamposConErrores] = useState([]); 
+
+// Estado para controlar la carga del formulario
+// Traemos la lógica de bloqueo global de un plumazo
+const { cargando, textoCargando, setBloqueoPantalla } = pantallaBloqueo();
 
 // Guarda el array de perfiles que traeremos de la base de datos (arranca vacío)
 const [listaPerfiles, setListaPerfiles] = useState([]);
@@ -36,7 +41,7 @@ const cargarPerfiles = () => {
       .catch(err => console.error('Error al cargar perfiles:', err));
   };
 
-// 3. EL DISPARADOR (useEffect)
+  // 3. EL DISPARADOR (useEffect)
   // Ahora se queda como un mero "oyente" que ejecuta la función al arrancar
   useEffect(() => {
     cargarPerfiles(); // ◄── Equivale al método init() o al arranque del Action de Struts
@@ -50,7 +55,7 @@ const cargarPerfiles = () => {
 const handleSubmit = (e) => {
   e.preventDefault(); // Evita que la página se recargue por defecto como en un HTML clásico
 
-  setCargando(true); // Indicamos que estamos en proceso de envío (podrías usarlo para deshabilitar el botón y mostrar un spinner)
+  setBloqueoPantalla(true, "Guardando el nuevo usuario en la plataforma..."); // Mostramos la pantalla de bloqueo con un mensaje personalizado
 
   // Creamos una lista temporal para apuntar los fallos de esta ejecución
   const erroresActuales = [];
@@ -72,6 +77,7 @@ const handleSubmit = (e) => {
 
   // Si la lista tiene algo dentro, significa que hay campos vacíos
   if (erroresActuales.length > 0) {
+    setBloqueoPantalla(false, ""); // Mostramos la pantalla de bloqueo con un mensaje personalizado
     setError('Todos los campos son obligatorios');
     setCamposConErrores(erroresActuales); // ◄── Guardamos la lista de culpables en el estado
     return; // Frenamos el envío
@@ -110,7 +116,7 @@ const handleSubmit = (e) => {
     body: formData // ◄── Enviamos el formData (React añade el Content-Type automáticamente)
   })
   .then(async (response) => {
-    setCargando(false); // Indicamos que hemos terminado de enviar (podrías reactivar el botón y ocultar el spinner)
+    setBloqueoPantalla(false, ""); // Ocultamos la pantalla de bloqueo
     if (response.ok) {
       alert("Usuario registrado con éxito");
       
@@ -134,10 +140,29 @@ const handleSubmit = (e) => {
 
       setError("Error al registrar el usuario: " + mensajeErrorJava);
 
+      // Creamos una lista temporal para identificar qué campo del formulario marcar en rojo
+      const culpablesBack = [];
+
+      if (mensajeErrorJava.includes("contraseña") || mensajeErrorJava.includes("longitud")) {
+        culpablesBack.push("password");
+      }
+
+      if (mensajeErrorJava.includes("nombre") || mensajeErrorJava.includes("nombre")) {
+        culpablesBack.push("nombre");
+      }     
+      
+      if (mensajeErrorJava.includes("apellidos") || mensajeErrorJava.includes("apellidos")) {
+        culpablesBack.push("apellidos");
+      }       
+
+      // Actualizamos el estado para que React redibuje los bordes en rojo
+      setCamposConErrores(culpablesBack);
+      
+
     }
   })
   .catch(err => console.error("Error en la petición:", err));
- 
+
 };
 
   return (
@@ -251,9 +276,8 @@ const handleSubmit = (e) => {
          <button type="submit" className="btn-guardar" disabled={cargando}>
             GUARDAR USUARIO
           </button>
-        </div>        
-
-
+        </div> 
+ 
 
       </form>
     
@@ -264,15 +288,8 @@ const handleSubmit = (e) => {
         </span>
       </p>
 
-      {/* ◄── AÑADE ESTE BLOQUE AL FINAL (JUSTO ANTES DE CERRAR EL DIV PRINCIPAL) */}
-      {cargando && (
-        <div className="pantalla-bloqueo">
-          <div className="bloqueo-contenido">
-            <div className="spinner-grande"></div>
-            <p>Grabando datos, por favor espere...</p>
-          </div>
-        </div> 
-      )}      
+      {/* Renderizamos la pantalla de bloqueo */}    
+      <PantallaBloqueo cargando={cargando} textoCargando={textoCargando} />
 
     </div>
   );

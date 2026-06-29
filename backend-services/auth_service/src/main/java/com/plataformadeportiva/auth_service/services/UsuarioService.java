@@ -44,6 +44,29 @@ public class UsuarioService {
      * return // El objeto Usuario que ha sido registrado exitosamente en la base de datos, incluyendo su ID generado automáticamente y el perfil asignado
      */
     public Usuario registrarUsuario(Usuario nuevoUsuario) {
+
+        String passwordPlano = "";
+        String passwordEncriptada = "";
+        
+        // Validaciones de campos obligatorios y formato de nombre y apellidos
+        if (nuevoUsuario.getNombre() == null || nuevoUsuario.getNombre().trim().isEmpty()) {
+            throw new RuntimeException("El nombre es obligatorio.");
+        }
+        
+        // Validamos que el nombre no contenga números ni caracteres especiales usando Expresiones Regulares (Regex)
+        if (!nuevoUsuario.getNombre().matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$")) {
+            throw new RuntimeException("El nombre no puede contener números ni caracteres especiales.");
+        }
+
+        // Validaciones de campos obligatorios y formato de apellidos
+        if (nuevoUsuario.getApellidos() == null || nuevoUsuario.getApellidos().trim().isEmpty()) {
+            throw new RuntimeException("Los apellidos son obligatorios.");
+        }
+
+        // Validamos que los apellidos no contengan números ni caracteres especiales usando Expresiones Regulares (Regex)
+        if (!nuevoUsuario.getApellidos().matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$")) {
+            throw new RuntimeException("Los apellidos no pueden contener números ni caracteres especiales.");
+        }        
         
         // 1. Validar si el usuario ya existe
         if (usuarioRepository.existsByUsuario(nuevoUsuario.getUsuario())) {
@@ -55,9 +78,26 @@ public class UsuarioService {
             throw new RuntimeException("El correo electrónico ya está registrado.");
         }
 
+        // Validamos la longitud mínima de 12 caracteres
+        if (passwordPlano == null || passwordPlano.length() < 12) {
+            throw new RuntimeException("La contraseña debe tener al menos 12 caracteres de longitud.");
+        }
+        
+        // Validamos que contenga al menos un número usando Expresiones Regulares (Regex)
+        // .*\\d.* significa: "busca si hay cualquier carácter, luego un dígito, luego cualquier otra cosa"
+        if (!passwordPlano.matches(".*\\d.*")) {
+            throw new RuntimeException("La contraseña debe contener al menos un número.");
+        }
+        
+        // Validamos que contenga al menos un carácter especial
+        // [!@#$%^&*(),.?\":{}|<>] define la lista de símbolos permitidos que buscamos
+        if (!passwordPlano.matches(".*[!@#$%^&*(),.?\":{}|<>].*")) {
+            throw new RuntimeException("La contraseña debe contener al menos un carácter especial (ej: !, @, #, $, %).");
+        }        
+
         // 3. Encriptar la contraseña antes de guardar el usuario
-        String passwordPlano = nuevoUsuario.getPassword();  
-        String passwordEncriptada = passwordEncoder.encode(passwordPlano);
+        passwordPlano = nuevoUsuario.getPassword();  
+        passwordEncriptada = passwordEncoder.encode(passwordPlano);
         nuevoUsuario.setPassword(passwordEncriptada);
 
         // 4. Sacamos el ID que ya vemos que viene con valor (Long@126)
@@ -82,6 +122,7 @@ public class UsuarioService {
      * return // El objeto Usuario autenticado, incluyendo su información y un token JWT
      */
     public String login(Usuario usuario) {
+
 
         // 1. Buscamos el usuario en la base de datos por su nombre de usuario. Si no lo encontramos, lanzamos una excepción indicando que el nombre de usuario no está registrado.
         Usuario user = Optional.ofNullable(usuarioRepository.findByUsuario(usuario.getUsuario())).orElseThrow(() -> new RuntimeException("El nombre de usuario no está registrado."));

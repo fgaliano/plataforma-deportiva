@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Home from './components/Home';                           // Traemos la pantalla de inicio
 import Login from './features/auth/components/Login';           // Traemos el formulario de login
 import Registro from './features/register/components/Registro'; // Traemos el formulario de registro
+import UserPanel from './features/user_panel/components/UserPanel'; //  Traemos el panel de usuario 
 
 function App() {
   // EXPLICACIÓN DEL MOTOR:
@@ -32,6 +33,11 @@ function App() {
       {/* SI la pantalla actual es 'registro', pintamos el formulario de Registro */}
       {pantallaActual === 'registro' && (
         <Registro onNavigate={navegarA} />
+      )}
+
+      {/* SI la pantalla actual es 'userPanel', pintamos el panel de usuario */}
+      {pantallaActual === 'userPanel' && (
+        <UserPanel onNavigate={navegarA} />
       )}
     </>
   );

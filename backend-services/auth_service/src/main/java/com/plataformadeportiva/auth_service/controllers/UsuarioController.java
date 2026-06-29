@@ -63,6 +63,10 @@ public class UsuarioController {
                                         @RequestPart(value = "foto", required = false) MultipartFile foto) { // Recibe la información del nuevo usuario a través del cuerpo de la solicitud (RequestBody) y el nombre del perfil a asignar a través de un parámetro de consulta (RequestParam)
         try {
 
+            // Llamamos al servicio para registrar el nuevo usuario, pasando la información del usuario y el nombre del perfil a asignar
+            Usuario usuarioCreado = usuarioService.registrarUsuario(usuario);
+            // Si el registro es exitoso, devolvemos una respuesta HTTP 200 OK con la información del usuario registrado
+
             // 1. Creamos la carpeta física en el servidor si no existe
             String rutaCarpeta = "uploads/fotos_usuarios/"; // Ruta relativa donde se guardarán las fotos de los usuarios
             File carpeta = new File(rutaCarpeta);
@@ -84,12 +88,10 @@ public class UsuarioController {
 
                 // Guardamos el nombre de la foto en el objeto que va a la base de datos
                 usuario.setRutaFoto(nombreArchivoFoto); 
-            }            
+            } 
 
-            // Llamamos al servicio para registrar el nuevo usuario, pasando la información del usuario y el nombre del perfil a asignar
-            Usuario usuarioCreado = usuarioService.registrarUsuario(usuario);
-            // Si el registro es exitoso, devolvemos una respuesta HTTP 200 OK con la información del usuario registrado
             return ResponseEntity.ok(usuarioCreado);
+            
         } catch (RuntimeException e) {
             // Si el servicio lanza un error (duplicados, etc.), devolvemos un 400 Bad Request con el mensaje
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -108,7 +110,7 @@ public class UsuarioController {
      * return ResponseEntity con la información del usuario autenticado o un mensaje de error
      */
     @PostMapping("/login") // Define que este método manejará las solicitudes POST a la ruta "/auth/login", lo que significa que los clientes deben enviar una solicitud POST a esta ruta para iniciar sesión con un usuario existente 
-    public ResponseEntity<?> login(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> login(@RequestPart("usuario") Usuario usuario) {
 
         try {
             // Llamamos al servicio para autenticar al usuario, pasando la información del usuario.
@@ -117,13 +119,7 @@ public class UsuarioController {
             return ResponseEntity.ok(token);
 
         } catch (RuntimeException e) {
-            //  CAPTURAMOS EL ERROR Y DEVOLVEMOS UN JSON
-            // Creamos un mapa que Spring convertirá automáticamente a {"message": "El nombre de..."}
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("message", e.getMessage());
-        
-            // Devolvemos un 401 (No autorizado) o 404 (No encontrado) con el JSON dentro   
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
 
 
