@@ -1,0 +1,167 @@
+.main-header {
+  /* Mantenemos tu barra fija arriba ocupando todo el ancho */
+  position: fixed; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px; 
+  margin: 20px 0; /* Espaciado superior e inferior */
+  
+  /* Activamos Flexbox */
+  display: flex;
+  align-items: center;
+  
+  padding: 0 2rem;
+  background-color: #000; /* Tu fondo negro */
+  color: #ffffff;
+  box-sizing: border-box;
+  z-index: 1000; 
+}
+
+/* 🚀 LA CLAVE: Este contenedor se comerá todo el espacio libre de la izquierda */
+.header-session-info {
+  margin-left: auto; /* 👈 Esto empuja mágicamente el texto y el botón a la derecha del todo */
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Espacio de separación entre el texto y el botón de Salir */
+}
+
+/* Alineación interna de los elementos de sesión */
+.logged-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+
+
+.header-logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.header-auth-zone {
+  display: flex;
+  align-items: center;
+}
+
+.user-logged-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.session-text {
+  font-size: 0.9rem;
+  color: #a1a1aa;
+}
+
+.session-text strong {
+  color: #fff;
+}
+
+.header-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #10b981; /* Borde verde como tu enlace */
+}
+
+.btn-logout {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.btn-logout:hover {
+  background-color: #dc2626;
+}
+
+.btn-login {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-login:hover {
+  background-color: #059669;
+}
+
+/* El logo o título a la izquierda */
+.header-logo {
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* 🚀 Contenedor de la sesión alineado a la derecha */
+.header-session-info {
+  display: flex;
+  align-items: center;
+}
+
+/* Alineación interna cuando el usuario está logueado */
+.logged-container {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Espacio entre el texto y el botón */
+}
+
+/* Estilo para el texto de la sesión */
+.session-text {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+}
+
+.session-text strong {
+  color: #38bdf8; /* Resalta el nombre en azul claro */
+}
+
+.session-text em {
+  color: #34d399; /* Resalta el perfil (ADMIN) en verde claro */
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* Botón de Cerrar Sesión elegante */
+.btn-logout {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-logout:hover {
+  background-color: #dc2626;
+}
+
+/* Botón de Iniciar Sesión cuando está deslogueado */
+.btn-login-nav {
+  background-color: #000;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-login-nav:hover {
+  background-color: #000;
+}

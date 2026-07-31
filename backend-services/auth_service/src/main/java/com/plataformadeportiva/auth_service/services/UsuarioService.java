@@ -134,7 +134,8 @@ public class UsuarioService {
 
         
         String token = jwtService.generateToken(user.getUsuario());
-        return token;
+        
+        return token; // Devolvemos el token JWT generado
 
     }
 

@@ -1,7 +1,7 @@
 // src/components/PantallaBloqueo.jsx
 import React from 'react';
 // Aquí importas el CSS donde tengas guardados los estilos de '.pantalla-bloqueo' y '.spinner-grande'
-import '../../../styles/forms.css'; // Subimos 3 niveles de carpetas para buscar los estilos
+import '../styles/forms.css'; // Subimos 3 niveles de carpetas para buscar los estilos
 
 function PantallaBloqueo({ cargando, textoCargando }) {
   // Si 'cargando' es false, no renderizamos nada

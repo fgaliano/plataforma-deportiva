@@ -5,7 +5,7 @@ import '../../../styles/forms.css'; // Subimos 3 niveles de carpetas para buscar
 import PantallaBloqueo from '../../../components/PantallaBloqueo';
 import { pantallaBloqueo } from '../../../hooks/pantallaBloqueo';
 
-function Login({ onNavigate }) {
+function Login({ onNavigate, onLoginSuccess }) {
   // ESTADOS DEL FORMULARIO:
   // En React, no buscamos el valor del HTML con un ID.
   // Creamos variables en la memoria de JavaScript y las unimos a los inputs.
@@ -66,12 +66,23 @@ function Login({ onNavigate }) {
     .then(async (response) => {
       setBloqueoPantalla(false, ""); // Ocultamos la pantalla de bloqueo
       if (response.ok) {
-        alert("Usuario logueado con éxito");
-        
-        // Aquí puedes redirigir o limpiar el formulario
-        onNavigate('userPanel');
-        
 
+      // 1. Leemos los datos que nos devuelve tu backend (Spring Boot)
+      const data = await response.json();
+
+      // Para ver exactamente qué te está devolviendo tu backend, mete este console.log:
+      console.log("Datos del usuario devueltos por el Back:", data);
+
+      // Enviamos el token, nombre y perfil al "jefe" (App.jsx)
+      onLoginSuccess({ 
+          usuario:  data.usuario,
+          perfil:   data.usuarioPerfil,
+          token:    data.token,
+          rutaFoto: data.rutaFoto // ◄── Añadimos la ruta de la foto devuelta por el backend
+      });
+
+      // Aquí puedes redirigir o limpiar el formulario
+      onNavigate('userPanel');   
 
       } else {
         
@@ -98,9 +109,7 @@ function Login({ onNavigate }) {
       }
     })
     .catch(err => console.error("Error en la petición:", err));
-    
-    console.log('Enviado datos...', { usuario, password });
-    // Aquí meteremos el fetch AJAX hacia Java en el futuro
+
   };
 
   return (
@@ -122,6 +131,8 @@ function Login({ onNavigate }) {
           />
         </div>
 
+        {/*<img src="../../../uploads/Eldarion.png" alt="Icono de usuario" />*/}
+
         <div className="input-group">
           <label>Contraseña</label>
           <input 
@@ -134,7 +145,7 @@ function Login({ onNavigate }) {
         </div>
 
         <button type="submit" className="btn-login">Entrar</button>
-            <button type="button" className="btn-login" onClick={() => setBloqueoPantalla(true,"Usuario bloqueado por intentos fallidos.")}>BLOQUE</button>
+            
       </form>
 
       {/* Enlace para volver a la pantalla de inicio */}

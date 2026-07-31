@@ -1,6 +1,13 @@
 package com.plataformadeportiva.auth_service.controllers;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+
 import com.plataformadeportiva.auth_service.models.Usuario;
+import com.plataformadeportiva.auth_service.repositories.UsuarioRepository;
 import com.plataformadeportiva.auth_service.services.UsuarioService;
 
 import java.io.File;
@@ -10,7 +17,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.http.HttpStatus;
+import java.util.Optional;
+
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,14 +41,17 @@ import org.springframework.web.multipart.MultipartFile;
  * plataforma deportiva, permitiendo a los clientes interactuar con el sistema de autenticación de manera eficiente y segura.
  *
  **/
+
 @RestController
 @RequestMapping("/auth") // Define la ruta base para todos los endpoints de este controlador, lo que significa que todas las solicitudes a este controlador deben comenzar con "/auth"
 public class UsuarioController {
 
-    private final UsuarioService usuarioService;
+    private final UsuarioService usuarioService; // Inyección de dependencia del UsuarioService para acceder a la lógica de negocio relacionada con la gestión de usuarios, lo que permite registrar nuevos usuarios a través del servicio
+    private final UsuarioRepository usuarioRepository; // Inyección de dependencia del UsuarioRepository para acceder a la base de datos y realizar operaciones CRUD relacionadas con los usuarios, lo que permite buscar usuarios por su nombre de usuario durante el proceso de autenticación
 
-    UsuarioController(UsuarioService usuarioService) {
+    UsuarioController(UsuarioService usuarioService, UsuarioRepository usuarioRepository) {
         this.usuarioService = usuarioService;
+        this.usuarioRepository = usuarioRepository;
     } // Inyección de dependencia del UsuarioService para acceder a la lógica de negocio relacionada con la gestión de usuarios, lo que permite registrar nuevos usuarios a través del servicio
 
     // Endpoint para registrar usuarios: POST http://localhost:8081/auth/register
@@ -115,8 +127,18 @@ public class UsuarioController {
         try {
             // Llamamos al servicio para autenticar al usuario, pasando la información del usuario.
             String token = usuarioService.login(usuario);
-            // Si la autenticación es exitosa, devolvemos una respuesta HTTP 200 OK con la información del usuario autenticado
-            return ResponseEntity.ok(token);
+
+            Usuario userDbUsuario = Optional.ofNullable(usuarioRepository.findByUsuario(usuario.getUsuario())).orElseThrow(() -> new RuntimeException("El nombre de usuario no está registrado."));
+
+            // 🚀 En lugar de enviar solo el texto, metemos el token en un mapa estructurado
+            Map<String, String> respuestaJson = new HashMap<>();
+            respuestaJson.put("token", token);
+            respuestaJson.put("usuario", userDbUsuario.getUsuario()); // O 'usuario.getUsername()', como lo tengas mapeado
+            respuestaJson.put("usuarioPerfil", userDbUsuario.getPerfil().getPerfil()); // O 'usuario.getPerfil()', como lo tengas mapeado
+            respuestaJson.put("rutaFoto", userDbUsuario.getRutaFoto()); // O 'usuario.getRutaFoto()', como lo tengas mapeado
+
+            // Si la autenticación es exitosa, devolvemos el JSON estructurado
+            return ResponseEntity.ok(respuestaJson);
 
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -124,6 +146,35 @@ public class UsuarioController {
 
 
     }
+
+    @GetMapping("/foto/{nombreFoto}")
+    public ResponseEntity<Resource> obtenerFotoPerfil(@PathVariable String nombreFoto) {
+        try {
+            // 1. Construimos la ruta absoluta hacia el archivo en la carpeta uploads
+            Path rutaArchivo = Paths.get("uploads/fotos_usuarios").resolve(nombreFoto).normalize();
+            Resource recurso = new UrlResource(rutaArchivo.toUri());
+
+            // 2. Verificamos que el archivo existe y es legible
+            if (!recurso.exists() || !recurso.isReadable()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 3. Detectamos el tipo de contenido (PNG, JPG, etc.) o por defecto octet-stream
+            String contentType = "image/png"; 
+            if (nombreFoto.endsWith(".jpg") || nombreFoto.endsWith(".jpeg")) {
+                contentType = "image/jpeg";
+            }
+
+            // 4. Retornamos la foto protegida con respuesta 200 OK
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + recurso.getFilename() + "\"")
+                    .body(recurso);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }    
 
     @GetMapping("/listado_usuarios") 
     public ResponseEntity<?> listadoUsuarios() {
