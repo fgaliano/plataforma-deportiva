@@ -147,6 +147,19 @@ public class UsuarioController {
 
     }
 
+    /**
+     * 
+     * Este método maneja las solicitudes GET a la ruta "/auth/foto/{nombreFoto}" para obtener la foto de perfil de un usuario. Realiza las siguientes acciones:
+     * 1. Construye la ruta absoluta hacia el archivo en la carpeta uploads     
+     * 2. Verifica que el archivo existe y es legible
+     * 3. Detecta el tipo de contenido (PNG, JPG, etc.) o
+     *   por defecto octet-stream
+     * 4. Retorna la foto protegida con respuesta 200 OK
+     * 5. Si ocurre algún error durante el proceso (como archivo no encontrado), devuelve una respuesta HTTP 404 Not Found o 500 Internal Server Error según corresponda   
+     * param nombreFoto El nombre del archivo de la foto de perfil que se desea obtener
+     * return ResponseEntity con la foto de perfil o un mensaje de error
+     *  
+     */
     @GetMapping("/foto/{nombreFoto}")
     public ResponseEntity<Resource> obtenerFotoPerfil(@PathVariable String nombreFoto) {
         try {
