@@ -20,6 +20,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
@@ -27,7 +28,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Para comprobar duplicados antes de registrar
     boolean existsByUsuario(String usuario); // Permite verificar si ya existe un usuario con el mismo nombre de usuario en la base de datos, lo que ayuda a evitar duplicados al registrar un nuevo usuario
     boolean existsByMail(String mail); // Permite verificar si ya existe un usuario con el mismo correo electrónico en la base de datos, lo que ayuda a evitar duplicados al registrar un nuevo usuario
-    Usuario findByUsuario(String usuario); // Permite buscar un usuario por su nombre de usuario, lo que es útil para el proceso de autenticación y otras operaciones relacionadas con la gestión de usuarios en la plataforma deportiva
+    Optional<Usuario> findByUsuario(String usuario); // Permite buscar un usuario por su nombre de usuario, lo que es útil para el proceso de autenticación y otras operaciones relacionadas con la gestión de usuarios en la plataforma deportiva
     List<Usuario> findAll(); // Permite obtener una lista de todos los usuarios registrados en la base de datos, lo que es útil para mostrar la información de los usuarios en la plataforma deportiva o realizar operaciones de administración de usuarios
 }
     

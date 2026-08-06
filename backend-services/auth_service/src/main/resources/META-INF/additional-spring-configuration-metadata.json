@@ -1,0 +1,6 @@
+{"properties": [{
+  "name": "app.upload.dir",
+  "type": "java.lang.String",
+  "description": "ruta local en el servidor donde se guardarán las imágenes físicas",
+  "defaultValue": "uploads/fotos_usuarios"
+}]}

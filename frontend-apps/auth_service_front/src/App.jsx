@@ -3,7 +3,9 @@ import Home from './components/Home';                               // Traemos l
 import Login from './features/auth/components/Login';           // Traemos el formulario de login
 import Registro from './features/register/components/Registro'; // Traemos el formulario de registro
 import UserPanel from './features/user_panel/components/UserPanel'; //  Traemos el panel de usuario 
+import ListadoUsers from './features/user_panel/components/ListadoUsers'; // Traemos el listado de usuarios 
 import Header from './components/Header'; //  Asegúrate de que la ruta a tu carpeta Header esté bien
+
 
 function App() {
   const [pantallaActual, setPantallaActual] = useState('home');
@@ -53,6 +55,13 @@ function App() {
       {pantallaActual === 'userPanel' && (
         <UserPanel onNavigate={navegarA} usuarioLogueado={usuario} />
       )}
+
+
+      {/* SI la pantalla actual es 'listado-usuarios', pintamos el componente de listado de usuarios */}
+      {pantallaActual === 'listar_usuarios' && (
+        <ListadoUsers usuarioLogueado={usuario} onNavigate={navegarA} onLogout={handleLogout} />
+      )}      
+
     </>
   );
 }

@@ -76,7 +76,9 @@ public class UsuarioController {
         try {
 
             // Llamamos al servicio para registrar el nuevo usuario, pasando la información del usuario y el nombre del perfil a asignar
-            Usuario usuarioCreado = usuarioService.registrarUsuario(usuario);
+            usuarioService.registrarUsuario(usuario);
+            Usuario usuarioCreadoDb = usuarioRepository.findByUsuario(usuario.getUsuario()).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
             // Si el registro es exitoso, devolvemos una respuesta HTTP 200 OK con la información del usuario registrado
 
             // 1. Creamos la carpeta física en el servidor si no existe
@@ -97,12 +99,16 @@ public class UsuarioController {
                 // Guardamos el archivo en el disco duro del servidor
                 Path rutaCompleta = Paths.get(rutaCarpeta + nombreArchivoFoto);
                 Files.write(rutaCompleta, foto.getBytes());
-
+                
                 // Guardamos el nombre de la foto en el objeto que va a la base de datos
-                usuario.setRutaFoto(nombreArchivoFoto); 
+                usuarioCreadoDb.setRutaFoto(nombreArchivoFoto); 
+
+                // Guardamos el usuario con la ruta de la foto actualizada en la base de datos
+                usuarioRepository.save(usuarioCreadoDb);
+
             } 
 
-            return ResponseEntity.ok(usuarioCreado);
+            return ResponseEntity.ok(usuarioCreadoDb);
             
         } catch (RuntimeException e) {
             // Si el servicio lanza un error (duplicados, etc.), devolvemos un 400 Bad Request con el mensaje
@@ -128,7 +134,8 @@ public class UsuarioController {
             // Llamamos al servicio para autenticar al usuario, pasando la información del usuario.
             String token = usuarioService.login(usuario);
 
-            Usuario userDbUsuario = Optional.ofNullable(usuarioRepository.findByUsuario(usuario.getUsuario())).orElseThrow(() -> new RuntimeException("El nombre de usuario no está registrado."));
+            Optional<Usuario> userDbUsuarioOpt = usuarioRepository.findByUsuario(usuario.getUsuario());
+            Usuario userDbUsuario = userDbUsuarioOpt.orElseThrow(() -> new RuntimeException("El nombre de usuario no está registrado."));
 
             // 🚀 En lugar de enviar solo el texto, metemos el token en un mapa estructurado
             Map<String, String> respuestaJson = new HashMap<>();

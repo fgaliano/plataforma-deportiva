@@ -45,7 +45,7 @@ public class UsuarioService {
      */
     public Usuario registrarUsuario(Usuario nuevoUsuario) {
 
-        String passwordPlano = "";
+        String passwordPlano = nuevoUsuario.getPassword();
         String passwordEncriptada = "";
         
         // Validaciones de campos obligatorios y formato de nombre y apellidos
@@ -96,7 +96,6 @@ public class UsuarioService {
         }        
 
         // 3. Encriptar la contraseña antes de guardar el usuario
-        passwordPlano = nuevoUsuario.getPassword();  
         passwordEncriptada = passwordEncoder.encode(passwordPlano);
         nuevoUsuario.setPassword(passwordEncriptada);
 
@@ -109,7 +108,11 @@ public class UsuarioService {
         // 6. Asignar el perfil encontrado al usuario
         nuevoUsuario.setPerfil(perfilDb);
 
-        // 7. Guardar en la tabla gpdd_usuarios
+        // 7. Asignar la ruta de la foto del usuario como su nombre de usuario
+        nuevoUsuario.setRutaFoto(nuevoUsuario.getUsuario());
+        
+
+        // 8. Guardar en la tabla gpdd_usuarios
         return usuarioRepository.save(nuevoUsuario);
     }
 
@@ -125,15 +128,16 @@ public class UsuarioService {
 
 
         // 1. Buscamos el usuario en la base de datos por su nombre de usuario. Si no lo encontramos, lanzamos una excepción indicando que el nombre de usuario no está registrado.
-        Usuario user = Optional.ofNullable(usuarioRepository.findByUsuario(usuario.getUsuario())).orElseThrow(() -> new RuntimeException("El nombre de usuario no está registrado."));
+        Optional<Usuario> userDbUsuarioOpt = usuarioRepository.findByUsuario(usuario.getUsuario());
+        Usuario userDbUsuario = userDbUsuarioOpt.orElseThrow(() -> new RuntimeException("El nombre de usuario no está registrado."));
 
         // 2. Validar la contraseña en texto plano que viene en la solicitud con la contraseña encriptada que tenemos en la base de datos utilizando el método matches del PasswordEncoder. Si las contraseñas coinciden, generamos un token JWT para el usuario autenticado. Si las contraseñas no coinciden, lanzamos una excepción indicando que la contraseña es incorrecta.
-        if (!passwordEncoder.matches(usuario.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(usuario.getPassword(), userDbUsuario.getPassword())) {
             throw new RuntimeException("La contraseña es incorrecta.");
         }
 
         
-        String token = jwtService.generateToken(user.getUsuario());
+        String token = jwtService.generateToken(userDbUsuario.getUsuario());
         
         return token; // Devolvemos el token JWT generado
 
