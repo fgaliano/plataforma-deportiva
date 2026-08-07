@@ -12,4 +12,6 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  flex-direction: column; /* Alinea los elementos uno debajo de otro */
+  padding-top: 80px; /* 60px de la barra + 20px de margen de seguridad */
 }

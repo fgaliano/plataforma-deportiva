@@ -292,7 +292,7 @@ const handleSubmit = (e) => {
           </button>
           <button type="button" className="btn-guardar" onClick={restablecerFormulario}>
             RESTABLECER FORMULARIO
-          </button>          
+          </button> 
         </div> 
  
       </form>

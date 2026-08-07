@@ -46,8 +46,8 @@
 
 /* Estilo para la foto de perfil en el Panel de Usuario */
 .panel-avatar {
-  width: 65px;               /* Ancho de la foto */
-  height: 65px;              /* Alto de la foto */
+  width: 50px;               /* Ancho de la foto */
+  height: 50px;              /* Alto de la foto */
   border-radius: 50%;         /* Hace que la imagen sea perfectamente redonda */
   object-fit: cover;          /* Evita que la foto se deforme o se estire */
   margin: 20px auto;          /* Espaciado arriba/abajo y centrada horizontalmente */
