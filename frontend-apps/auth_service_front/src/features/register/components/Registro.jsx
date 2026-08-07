@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../../../styles/register.css'; // Subimos 3 niveles de carpetas para buscar los estilos
 import '../../../styles/forms.css'; // Subimos 3 niveles de carpetas para buscar los estilos
 // Importamos las herramientas globales
@@ -8,6 +8,9 @@ import { pantallaBloqueo } from '../../../hooks/pantallaBloqueo';
 function Registro({ onNavigate }) {
  
 const [error, setError] = useState('');
+
+
+
 
 /**************************************************/
 /************ VARIABLES DEL FORMULARIO ************/
@@ -20,6 +23,9 @@ const [usuario, setUsuario] = useState('');
 const [password, setPassword] = useState('');
 const [perfil, setPerfilId] = useState('');
 const [foto, setFoto] = useState(null);
+
+// 1. Creas la referencia para el input file
+const inputFileRefFoto = useRef(null);
 
 // Estado para controlar qué campos tienen errores de validación
 const [camposConErrores, setCamposConErrores] = useState([]); 
@@ -40,6 +46,20 @@ const cargarPerfiles = () => {
       })
       .catch(err => console.error('Error al cargar perfiles:', err));
   };
+
+  // Función para limpiar el formulario y resetear los estados
+  const restablecerFormulario = () => {
+
+      setNombre('');
+      setApellidos('');
+      setMail('');
+      setUsuario('');
+      setPassword('');
+      setPerfilId('0'); // Vuelve automáticamente a "Seleccione perfil de usuario"
+      setFoto(null); // Limpias el estado de React
+      inputFileRefFoto.current.value = ""; // Limpias el valor del input HTML
+
+  };  
 
   // 3. EL DISPARADOR (useEffect)
   // Ahora se queda como un mero "oyente" que ejecuta la función al arrancar
@@ -121,14 +141,7 @@ const handleSubmit = (e) => {
       alert("Usuario registrado con éxito");
       
       // Aquí puedes redirigir o limpiar el formulario
-      // 2. Limpiamos absolutamente todos los inputs vaciando sus estados
-      setNombre('');
-      setApellidos('');
-      setMail('');
-      setUsuario('');
-      setPassword('');
-      setPerfil(''); // Vuelve automáticamente a "Seleccione perfil de usuario"
-      setFoto(null); // Resetea la foto si la tuviera
+      restablecerFormulario(); // Llamamos a la función que limpia el formulario y resetea los estados
       
       // Limpiamos también el input físico de tipo archivo de la pantalla
       const inputFoto = document.querySelector('input[type="file"]');
@@ -263,6 +276,7 @@ const handleSubmit = (e) => {
       <div className="input-group">
         <label>Foto de Perfil</label>
         <input 
+          ref={inputFileRefFoto} // Vinculas la referencia aquí
           type="file" 
           accept="image/*" // Solo permite imágenes (.png, .jpg, etc.)
           onChange={(e) => setFoto(e.target.files[0])} // Guarda el archivo real, no el texto
@@ -276,9 +290,11 @@ const handleSubmit = (e) => {
          <button type="submit" className="btn-guardar" disabled={cargando}>
             GUARDAR USUARIO
           </button>
+          <button type="button" className="btn-guardar" onClick={restablecerFormulario}>
+            LIMPIAR FORMULARIO
+          </button>          
         </div> 
  
-
       </form>
     
       {/* Enlace para volver a la pantalla de inicio */}
