@@ -288,7 +288,7 @@ const handleSubmit = (e) => {
 
         <div className="input-group">
          <button type="submit" className="btn-guardar" disabled={cargando}>
-            GUARDAR USUARIO
+            GUARDAR NUEVO USUARIO
           </button>
           <button type="button" className="btn-guardar" onClick={restablecerFormulario}>
             RESTABLECER FORMULARIO
