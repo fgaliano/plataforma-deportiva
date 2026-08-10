@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # ################################################
   # 1. El motor de nuestra Base de Datos
@@ -18,7 +20,7 @@ services:
       - red-deportiva
 
   # ################################################
-  # 2. Tu Microservicio de Autenticación (¡NUEVO!)
+  # 2. Tu Microservicio de Autenticación (Backend)
   # ################################################
   auth-service:
     container_name: auth_service_container
@@ -29,7 +31,6 @@ services:
     ports:
       - "8081:8081"
     environment:
-      # Apuntamos la URL al nombre del contenedor de la BBDD 'bbdd-plataforma'
       - SPRING_DATASOURCE_URL=jdbc:postgresql://bbdd-plataforma:5432/bbdd-plataforma
       - SPRING_DATASOURCE_USERNAME=admin
       - SPRING_DATASOURCE_PASSWORD=123456789
@@ -38,11 +39,27 @@ services:
     networks:
       - red-deportiva
 
+  # ################################################
+  # 3. Tu Aplicación Frontend (Vite / React)
+  # ################################################
+  frontend-service:
+    container_name: frontend_deportivo_container
+    restart: always
+    build:
+      context: ./frontend-apps/auth_service_front
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - auth-service
+    networks:
+      - red-deportiva
+
 # Volúmenes para que los datos no se borren al apagar el contenedor
 volumes:
   data-deportiva:
 
-# Red interna para que los microservicios se hablen entre sí en el futuro
+# Red interna para que los microservicios se hablen entre sí
 networks:
   red-deportiva:
     driver: bridge
